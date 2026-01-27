@@ -1,149 +1,153 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-import os
-import shutil
-import subprocess
-import threading
-import winsound
+import os, shutil, subprocess, threading, winsound
 from datetime import datetime
+from PIL import Image
 
-# --- CONFIG ---
+# --- CYBERPUNK THEME CONFIG ---
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
 
-class SOCCenterTactical(ctk.CTk):
+class SOCWarRoom(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("🛡️ SOC COMMAND CENTER - TACTICAL")
-        self.geometry("1000x700")
+        self.title("⚡ SOC WAR ROOM - PROTOCOL: ZERO ⚡")
+        self.geometry("1200x800")
+        
+        # Cấu hình màu sắc Neon
+        self.neon_blue = "#00F0FF"
+        self.neon_green = "#00FF41"
+        self.neon_red = "#FF003C"
+        self.bg_black = "#050505"
 
-        # Đường dẫn dựa trên ảnh cấu trúc thư mục của mày
-        self.RULES_DIR = "rules/" 
+        self.RULES_DIR = "rules/"
         self.selected_file = None
 
-        self.setup_ui()
+        self._build_interface()
 
-    def setup_ui(self):
+    def _build_interface(self):
+        self.configure(fg_color=self.bg_black)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # --- SIDEBAR ---
-        self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0, fg_color="#161b22")
+        # --- LEFT NAVIGATION BAR (NEON SIDEBAR) ---
+        self.sidebar = ctk.CTkFrame(self, width=260, corner_radius=0, fg_color="#0A0A0A", border_width=1, border_color="#1A1A1A")
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
-        ctk.CTkLabel(self.sidebar, text="SOC ENGINE", font=ctk.CTkFont(size=20, weight="bold", family="Consolas")).pack(pady=30)
+        # Header Logo với hiệu ứng Glow
+        self.logo_label = ctk.CTkLabel(self.sidebar, text="SYSTEM-X", font=ctk.CTkFont(size=28, weight="bold", family="Orbitron"))
+        self.logo_label.pack(pady=(50, 0))
+        self.status_sub = ctk.CTkLabel(self.sidebar, text="AUTOMATION PROTOCOL ACTIVE", text_color=self.neon_blue, font=("Consolas", 10))
+        self.status_sub.pack(pady=(0, 40))
+
+        # Phân đoạn điều khiển
+        self.nav_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        self.nav_frame.pack(fill="x", padx=20)
+
+        self.btn_deploy = self._create_nav_btn("🚀 DEPLOY UNIT", self.neon_blue, self.run_deploy)
+        self.btn_push = self._create_nav_btn("☁️ SYNC CLOUD", self.neon_green, self.run_git_push)
+
+        # Monitor Switch với hiệu ứng cảnh báo
+        self.monitor_frame = ctk.CTkFrame(self.sidebar, fg_color="#111", corner_radius=15, border_width=1, border_color=self.neon_red)
+        self.monitor_frame.pack(side="bottom", fill="x", padx=20, pady=30)
         
-        # Monitor Switch
-        self.monitor_switch = ctk.CTkSwitch(self.sidebar, text="LIVE ALERT", progress_color="red", command=self.toggle_monitor)
+        self.monitor_switch = ctk.CTkSwitch(self.monitor_frame, text="THREAT SCANNER", progress_color=self.neon_red, font=("Consolas", 12, "bold"), command=self.toggle_monitor)
         self.monitor_switch.pack(pady=20, padx=20)
 
-        self.status_indicator = ctk.CTkLabel(self.sidebar, text="● READY", text_color="#00FF41")
-        self.status_indicator.pack(side="bottom", pady=20)
+        # --- MAIN COMMAND CENTER ---
+        self.main_view = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_view.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)
 
-        # --- MAIN CONTENT ---
-        self.main = ctk.CTkFrame(self, fg_color="transparent")
-        self.main.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        # Top Bar Stats
+        self.stats_bar = ctk.CTkFrame(self.main_view, height=80, fg_color="#0F0F0F", border_width=1, border_color="#222")
+        self.stats_bar.pack(fill="x", pady=(0, 25))
+        
+        self._add_stat("RULES LOADED", "1,266", self.neon_blue) #
+        self._add_stat("GH ACTIONS", "ONLINE", self.neon_green) #
+        self._add_stat("THREAT LEVEL", "STABLE", self.neon_green)
 
-        # STEP 1: LOCAL STAGING
-        self.stage_frame = ctk.CTkFrame(self.main, border_width=1, border_color="#30363d")
-        self.stage_frame.pack(fill="x", pady=(0, 15), padx=10)
+        # File Operations Card
+        self.op_card = ctk.CTkFrame(self.main_view, fg_color="#0A0A0A", border_width=1, border_color="#333", corner_radius=20)
+        self.op_card.pack(fill="x", pady=10)
 
-        ctk.CTkLabel(self.stage_frame, text="PHASE 1: LOCAL RULE INGESTION", font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=20, pady=10)
+        ctk.CTkLabel(self.op_card, text="❱❱ SIGMA INGESTION INTERFACE", font=("Consolas", 14, "bold"), text_color="#555").pack(anchor="w", padx=30, pady=(20, 10))
+        
+        input_f = ctk.CTkFrame(self.op_card, fg_color="transparent")
+        input_f.pack(fill="x", padx=30, pady=(0, 20))
 
-        self.btn_browse = ctk.CTkButton(self.stage_frame, text="📁 BROWSE SIGMA", command=self.browse_file, fg_color="#21262d")
-        self.btn_browse.pack(side="left", padx=20, pady=20)
+        self.btn_browse = ctk.CTkButton(input_f, text="BROWSE DATA", width=140, fg_color="#1A1A1A", border_width=1, border_color=self.neon_blue, command=self.browse_file)
+        self.btn_browse.pack(side="left", padx=5)
 
-        self.lbl_file = ctk.CTkLabel(self.stage_frame, text="No file selected", text_color="gray")
-        self.lbl_file.pack(side="left", padx=10)
+        self.lbl_file = ctk.CTkLabel(input_f, text="WAITING FOR UPLOAD...", text_color="#444", font=("Consolas", 12))
+        self.lbl_file.pack(side="left", padx=20)
 
-        self.btn_import = ctk.CTkButton(self.stage_frame, text="📥 STAGE TO RULES/", fg_color="#238636", command=self.import_to_local)
-        self.btn_import.pack(side="right", padx=20, pady=20)
+        self.commit_entry = ctk.CTkEntry(input_f, placeholder_text="ENCRYPTED COMMIT MESSAGE...", width=350, fg_color="#000", border_color="#222")
+        self.commit_entry.pack(side="right", padx=10)
 
-        # STEP 2: GIT AUTOMATION
-        self.git_frame = ctk.CTkFrame(self.main, border_width=1, border_color="#30363d")
-        self.git_frame.pack(fill="x", pady=(0, 15), padx=10)
+        # Terminal Console (Hacker Style)
+        self.terminal_f = ctk.CTkFrame(self.main_view, fg_color="#000", border_width=1, border_color=self.neon_blue)
+        self.terminal_f.pack(fill="both", expand=True, pady=20)
+        
+        self.console = ctk.CTkTextbox(self.terminal_f, fg_color="transparent", text_color=self.neon_green, font=("Consolas", 14))
+        self.console.pack(fill="both", expand=True, padx=15, pady=15)
+        self.log("CORE SYSTEM LOADED. STANDING BY.")
 
-        ctk.CTkLabel(self.git_frame, text="PHASE 2: GITHUB SYNCHRONIZATION", font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=20, pady=10)
+    def _create_nav_btn(self, text, color, cmd):
+        btn = ctk.CTkButton(self.nav_frame, text=text, fg_color="#111", border_width=1, border_color=color, hover_color=color, font=("Consolas", 13, "bold"), height=50, command=cmd)
+        btn.pack(fill="x", pady=10)
+        return btn
 
-        self.entry_commit = ctk.CTkEntry(self.git_frame, placeholder_text="Commit message...", width=450)
-        self.entry_commit.pack(side="left", padx=20, pady=20)
+    def _add_stat(self, label, value, color):
+        f = ctk.CTkFrame(self.stats_bar, fg_color="transparent")
+        f.pack(side="left", expand=True)
+        ctk.CTkLabel(f, text=label, font=("Consolas", 10), text_color="#666").pack()
+        ctk.CTkLabel(f, text=value, font=("Consolas", 18, "bold"), text_color=color).pack()
 
-        self.btn_push = ctk.CTkButton(self.git_frame, text="☁️ PUSH TO REMOTE", fg_color="#1f6feb", command=self.run_git_push)
-        self.btn_push.pack(side="right", padx=20, pady=20)
-
-        # CONSOLE
-        self.console = ctk.CTkTextbox(self.main, fg_color="#0d1117", text_color="#00ff41", font=("Consolas", 13))
-        self.console.pack(fill="both", expand=True, padx=10, pady=10)
-
-    # --- LOGIC XỬ LÝ (A & B) ---
-
-    def play_sound(self, sound_type="success"):
-        if sound_type == "success":
-            winsound.Beep(1000, 200) # Tiếng "Ting" ngắn
-        elif sound_type == "error":
-            winsound.Beep(440, 500)
+    # --- LOGIC HANDLING (NGẦU HƠN) ---
 
     def log(self, msg):
-        time_str = datetime.now().strftime("%H:%M:%S")
-        self.console.insert("end", f"[{time_str}] > {msg}\n")
+        self.console.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}] > {msg}\n")
         self.console.see("end")
 
+    def play_fx(self, freq):
+        winsound.Beep(freq, 100) #
+
     def browse_file(self):
-        file = filedialog.askopenfilename(filetypes=[("Sigma", "*.yml *.yaml")])
+        file = filedialog.askopenfilename()
         if file:
             self.selected_file = file
-            self.lbl_file.configure(text=os.path.basename(file), text_color="#58a6ff")
+            self.lbl_file.configure(text=os.path.basename(file).upper(), text_color=self.neon_blue)
+            self.play_fx(1500)
 
-    def import_to_local(self):
-        if not self.selected_file:
-            self.play_sound("error")
-            return
-        
+    def run_deploy(self):
+        if not self.selected_file: return
+        self.log(f"INITIATING RULE INGESTION: {os.path.basename(self.selected_file)}")
         dest = os.path.join(self.RULES_DIR, os.path.basename(self.selected_file))
         shutil.copy(self.selected_file, dest)
-        self.log(f"Staged: {os.path.basename(self.selected_file)} -> {self.RULES_DIR}")
-        self.play_sound("success")
+        self.play_fx(2000)
+        self.log("LOCAL STAGING COMPLETE. READY FOR CLOUD SYNC.")
 
     def run_git_push(self):
-        commit_msg = self.entry_commit.get()
-        if not commit_msg:
-            messagebox.showwarning("Git Ops", "Vui lòng nhập Commit Message!")
-            return
-        
-        self.btn_push.configure(state="disabled", text="PUSHING...")
-        threading.Thread(target=self.execute_git_commands, args=(commit_msg,), daemon=True).start()
+        msg = self.commit_entry.get()
+        if not msg: return
+        self.log("COMMENCING CLOUD SYNCHRONIZATION...")
+        threading.Thread(target=self.git_task, args=(msg,), daemon=True).start()
 
-    def execute_git_commands(self, msg):
+    def git_task(self, msg):
         try:
-            # Chuỗi lệnh Git chuẩn
-            commands = [
-                ["git", "add", "."],
-                ["git", "commit", "-m", msg],
-                ["git", "push", "origin", "main"]
-            ]
-            
-            for cmd in commands:
-                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-                self.log(f"Git: {' '.join(cmd)} - Done")
-            
-            self.log("✅ CLOUD SYNC COMPLETE. GitHub Actions will handle deployment.")
-            self.play_sound("success")
-        except Exception as e:
-            self.log(f"❌ GIT ERROR: {str(e)}")
-            self.play_sound("error")
-        finally:
-            self.btn_push.configure(state="normal", text="☁️ PUSH TO REMOTE")
+            for cmd in [["git", "add", "."], ["git", "commit", "-m", msg], ["git", "push", "origin", "main"]]:
+                subprocess.run(cmd, check=True, capture_output=True)
+                self.log(f"EXECUTING: {' '.join(cmd)}")
+            self.log("✅ PROTOCOL ZERO COMPLETE. REMOTE SIEM UPDATED.")
+            self.play_fx(2500)
+        except:
+            self.log("❌ CRITICAL ERROR IN CLOUD UPLOAD.")
 
     def toggle_monitor(self):
-        # Placeholder cho hàm alert.py của mày
-        if self.monitor_switch.get():
-            self.log("Alert Monitoring: STARTED")
-            self.status_indicator.configure(text="● MONITORING", text_color="red")
-        else:
-            self.log("Alert Monitoring: STOPPED")
-            self.status_indicator.configure(text="● READY", text_color="#00FF41")
+        state = "ACTIVE" if self.monitor_switch.get() else "IDLE"
+        self.log(f"THREAT SCANNER: {state}")
+        self.play_fx(800 if state == "ACTIVE" else 400)
 
 if __name__ == "__main__":
-    app = SOCCenterTactical()
+    app = SOCWarRoom()
     app.mainloop()
