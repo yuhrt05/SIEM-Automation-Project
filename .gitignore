@@ -1,0 +1,15 @@
+﻿# Chặn file cấu hình chứa mật khẩu và token nhạy cảm
+config.json
+
+# Chặn các file tạm của Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Chặn môi trường ảo
+venv/
+env/
+
+# Chặn các file log và dữ liệu tạm
+*.ndjson
+sigma_rules/
