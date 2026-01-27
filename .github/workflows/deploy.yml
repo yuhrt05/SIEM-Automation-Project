@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - 'rules/**'
-      - 'deploy_rules.py'
+      - 'scripts/deploy_to_kibana.py' # Cập nhật đường dẫn theo dõi file script
 
 jobs:
   deploy:
@@ -23,8 +23,9 @@ jobs:
 
       - name: Run Deploy Script
         env:
-          # Truyền các Secret mày đã tạo vào script
+          # Các biến bảo mật lấy từ GitHub Secrets
           ELASTIC_URL: ${{ secrets.ELASTIC_URL }}
           ELASTIC_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
           ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
-        run: python deploy_rules.py
+        # Di chuyển vào thư mục scripts trước khi chạy lệnh python
+        run: python scripts/deploy_to_kibana.py
