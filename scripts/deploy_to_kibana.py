@@ -4,15 +4,16 @@ import sys
 import io
 import os
 import shutil
+from dotenv import load_dotenv
 
 # Đảm bảo in tiếng Việt không lỗi trên mọi môi trường
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
+load_dotenv()
 # --- CẤU HÌNH HỆ THỐNG ---
 # Ưu tiên lấy từ biến môi trường (GitHub Secrets), nếu không có mới dùng giá trị mặc định
-URL = os.getenv('ELASTIC_URL', 'https://speakers-brooklyn-defense-nearly.trycloudflare.com/') 
-USER = os.getenv('ELASTIC_USERNAME', 'elastic')
-PASS = os.getenv('ELASTIC_PASSWORD', '123456')
+URL = os.getenv('ELASTIC_URL') or os.getenv('ELASTIC_HOST')
+USER = os.getenv('ELASTIC_USERNAME') or os.getenv('ELASTIC_USER')
+PASS = os.getenv('ELASTIC_PASSWORD') or os.getenv('ELASTIC_PASS')
 
 # Tự động điều chỉnh đường dẫn theo môi trường
 if os.getenv('GITHUB_ACTIONS'):

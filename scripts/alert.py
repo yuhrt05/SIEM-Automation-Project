@@ -18,7 +18,6 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 TARGET_USER = os.getenv("TARGET_USER")
 INDEX = ".internal.alerts-security.alerts-default-000001"
 
-
 es = Elasticsearch(ELASTIC_HOST, basic_auth=AUTH, verify_certs=False)
 
 def send_telegram(msg):
