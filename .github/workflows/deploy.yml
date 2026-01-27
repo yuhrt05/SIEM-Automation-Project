@@ -3,7 +3,6 @@ on:
   push:
     paths:
       - 'rules/**'
-      - 'scripts/deploy_to_kibana.py'
 
 jobs:
   deploy:
