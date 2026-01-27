@@ -2,21 +2,21 @@ import time, requests, urllib3, sys, logging
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
 from datetime import datetime, timezone
-
+from dotenv import load_dotenv
+import os
 # Tắt cảnh báo để terminal sạch sẽ
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 
 if sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
-
+load_dotenv()
 # --- CONFIG ---
-ELASTIC_HOST = "https://192.168.129.139:9200" 
-AUTH = ("elastic", "123456")
-INDEX = ".internal.alerts-security.alerts-default-000001"
-TOKEN = "8554578720:AAEZ1RaPL2h6B0zUh_sp8QqqUw-MDIAFPxk" 
-CHAT_ID = "6403417879"
-TARGET_USER = "VictimUser"
+ELASTIC_HOST = os.getenv("ELASTIC_HOST")
+AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+TARGET_USER = os.getenv("TARGET_USER")
 
 es = Elasticsearch(ELASTIC_HOST, basic_auth=AUTH, verify_certs=False)
 

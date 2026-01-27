@@ -6,9 +6,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Chặn môi trường ảo
-venv/
-env/
+# Chặn tất cả các file .env ở bất kỳ đâu trong project
+**/.env
+scripts/.env
+__pycache__/
 
 # Chặn các file log và dữ liệu tạm
 *.ndjson
