@@ -3,10 +3,9 @@ import requests
 import sys
 import io
 import os
-import urllib3
+import shutil
 
-# Tắt cảnh báo InsecureRequest khi dùng verify=False
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Đảm bảo in tiếng Việt không lỗi trên mọi môi trường
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # --- CẤU HÌNH HỆ THỐNG ---
@@ -14,15 +13,31 @@ URL = os.getenv('ELASTIC_URL')
 USER = os.getenv('ELASTIC_USERNAME')
 PASS = os.getenv('ELASTIC_PASSWORD')
 
-# Giữ nguyên logic đường dẫn cho GitHub Actions
-RULES_INPUT = 'rules/'
-NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
+if os.getenv('GITHUB_ACTIONS'):
+    RULES_INPUT = 'rules/'
+    NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
+
+def get_sigma_path():
+    """Tìm lệnh sigma phù hợp cho cả Windows và Linux (GitHub Actions)"""
+    sigma_path = shutil.which("sigma")
+    if sigma_path:
+        return f'"{sigma_path}"'
+
+    python_scripts_dir = os.path.join(os.path.dirname(sys.executable), "Scripts")
+    sigma_exe = os.path.join(python_scripts_dir, "sigma.exe")
+    if os.path.exists(sigma_exe):
+        return f'"{sigma_exe}"'
+    
+    return "sigma"
 
 def fast_deploy():
-    # Bước 1: Chuyển đổi luật Sigma
-    print(f"[*] Đang convert rules Sigma từ: {RULES_INPUT}")
-    cmd = f'sigma convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
+    sigma_cmd = get_sigma_path()
+    print(f"[*] Đang sử dụng Sigma CLI: {sigma_cmd}")
+    print(f"[*] Kết nối đến SIEM qua URL: {URL}")
     
+    # Bước 1: Convert rules Sigma sang NDJSON
+    cmd = f'{sigma_cmd} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
+    print("[*] Đang convert rules Sigma...")
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
     
     if result.returncode != 0:
@@ -35,8 +50,8 @@ def fast_deploy():
 
     print(f"[+] Convert thành công: {NDJSON_OUTPUT}")
 
-    # Bước 2: Đẩy lên SIEM qua API
-    print("[*] Đang đẩy luật lên SIEM qua URL: {URL}")
+    # Bước 2: Nạp file lên Kibana SIEM qua API
+    print("[*] Đang đẩy luật lên SIEM...")
     try:
         with open(NDJSON_OUTPUT, 'rb') as f:
             res = requests.post(
@@ -44,16 +59,12 @@ def fast_deploy():
                 headers={"kbn-xsrf": "true"},
                 auth=(USER, PASS),
                 files={'file': ('rules.ndjson', f, 'application/x-ndjson')},
-                params={"overwrite": "true"},
-                verify=False,
-                timeout=60
+                params={"overwrite": "true"}
             )
-
         if res.status_code == 200:
             print("THÀNH CÔNG! Luật đã được nạp vào SIEM.")
         else:
             print(f"Lỗi API SIEM ({res.status_code}): {res.text}")
-            
     except Exception as e:
         print(f"[-] Lỗi kết nối: {e}")
 
