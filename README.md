@@ -1,0 +1,1 @@
+![image](images/Sơ đồ Automation.png)
