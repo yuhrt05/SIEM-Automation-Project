@@ -1,170 +1,211 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-import os, shutil, subprocess, threading, winsound
+import os, shutil, subprocess, threading, winsound, psutil, time
 from datetime import datetime
 # Đảm bảo file alert.py nằm cùng thư mục và có class AlertMonitor
 from alert import AlertMonitor 
 
-# --- CẤU HÌNH GIAO DIỆN ---
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
+# --- CẤU HÌNH MÀU SẮC CLEAN TECH ---
+COLOR_BG_LIGHT = "#F0F2F5"     
+COLOR_SIDEBAR = "#FFFFFF"      
+COLOR_FRAME = "#FFFFFF"        
+COLOR_ACCENT = "#0062FF"       
+COLOR_TEXT_DARK = "#1C1E21"    
+COLOR_TEXT_MUTED = "#65676B"   
+COLOR_BORDER = "#E4E6EB"       
+COLOR_STATUS_GREEN = "#28A745" 
+COLOR_NEON_RED = "#FF3B30"     
+COLOR_DARK_RED = "#660000"     
+
+ctk.set_appearance_mode("light") 
 
 class SOCXCommand(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("⚡ SOC TACTICAL COMMAND - X PROTOCOL ⚡")
-        self.geometry("1100x750")
-        # 1. Khởi tạo hệ thống Monitor (Hàng của bạn đây!)
+        self.geometry("1100x800")
+
         self.monitor_system = AlertMonitor()
-        # 2. Cấu hình màu sắc Cyberpunk
-        self.neon_cyan = "#00F0FF"
-        self.neon_green = "#00FF41"
-        self.neon_red = "#FF003C"
         self.RULES_DIR = "rules/"
         self.selected_path = None
         self.is_folder = False
+        self.blink_state = False
+        
+        # Biến quản lý Placeholder
+        self.placeholder_msg = "ENTER COMMIT MSG HERE..."
 
         self._init_ui()
+        
+        # Khởi chạy luồng cập nhật CPU/RAM
+        threading.Thread(target=self._update_system_stats, daemon=True).start()
 
     def _init_ui(self):
+        self.configure(fg_color=COLOR_BG_LIGHT)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        # --- SIDEBAR: SYSTEM NAVIGATOR ---
-        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#0A0A0A", border_width=1, border_color="#1A1A1A")
+
+        # --- SIDEBAR ---
+        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color=COLOR_SIDEBAR, border_width=1, border_color=COLOR_BORDER)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
-        ctk.CTkLabel(self.sidebar, text="SIEM", font=ctk.CTkFont(size=26, weight="bold", family="Orbitron"), text_color=self.neon_cyan).pack(pady=(50, 5))
-        ctk.CTkLabel(self.sidebar, text="AUTOMATION CENTER", font=("Consolas", 10), text_color="gray").pack(pady=(0, 40))
+        ctk.CTkLabel(self.sidebar, text="SIEM", font=ctk.CTkFont(size=26, weight="bold"), text_color=COLOR_ACCENT).pack(pady=(50, 5))
+        ctk.CTkLabel(self.sidebar, text="AUTOMATION CENTER", font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED).pack(pady=(0, 40))
 
-        self.btn_deploy = self._side_btn("LOAD RULE", self.neon_cyan, self.start_deploy_thread)
-        self.btn_push = self._side_btn("GIT PUSH", self.neon_green, self.run_git_push)
+        self.btn_deploy = self._side_btn("LOAD RULE", COLOR_ACCENT, self.start_deploy_thread)
+        self.btn_push = self._side_btn("GIT PUSH", COLOR_STATUS_GREEN, self.run_git_push)
 
-        # Status Monitor Widget (Cụm điều khiển Alert)
-        self.mon_frame = ctk.CTkFrame(self.sidebar, fg_color="#111", corner_radius=15, border_width=1, border_color="#333")
+        self.mon_frame = ctk.CTkFrame(self.sidebar, fg_color="#F8F9FA", corner_radius=15, border_width=1, border_color=COLOR_BORDER)
         self.mon_frame.pack(side="bottom", fill="x", padx=20, pady=30)
         
-        self.status_indicator = ctk.CTkLabel(self.mon_frame, text="● SYSTEM READY", text_color=self.neon_green, font=("Consolas", 12, "bold"))
+        self.status_indicator = ctk.CTkLabel(self.mon_frame, text="● SYSTEM READY", text_color=COLOR_STATUS_GREEN, font=("Segoe UI", 12, "bold"))
         self.status_indicator.pack(pady=(15, 5))
 
-        self.mon_sw = ctk.CTkSwitch(self.mon_frame, text="THREAT SCAN", progress_color=self.neon_red, font=("Consolas", 12, "bold"), command=self.toggle_monitor)
+        self.mon_sw = ctk.CTkSwitch(self.mon_frame, text="THREAT SCAN", progress_color=COLOR_NEON_RED, command=self.toggle_monitor)
         self.mon_sw.pack(pady=(5, 15), padx=20)
 
         # --- MAIN WORKSPACE ---
-        self.workspace = ctk.CTkFrame(self, fg_color="#050505", corner_radius=0)
+        self.workspace = ctk.CTkFrame(self, fg_color="transparent")
         self.workspace.grid(row=0, column=1, sticky="nsew")
 
         # Header Stats
         self.header = ctk.CTkFrame(self.workspace, height=100, fg_color="transparent")
         self.header.pack(fill="x", padx=40, pady=(40, 20))
-        self._add_stat("TOTAL RULES", "1,266", self.neon_cyan)
-        self._add_stat("CLOUD STATUS", "ACTIVE", self.neon_green)
-        self._add_stat("SOC OPERATOR", "yuhrt05", self.neon_cyan)
+        self._add_stat("SOC OPERATOR", "ELK", COLOR_TEXT_DARK)
+        self.cpu_val = self._add_stat("CPU LOAD", "0%", COLOR_ACCENT)
+        self.ram_val = self._add_stat("RAM USAGE", "0%", COLOR_ACCENT)
 
-        # Ingestion Console
-        self.console_card = ctk.CTkFrame(self.workspace, fg_color="#0F0F0F", border_width=1, border_color="#222", corner_radius=20)
+        # --- INGESTION CONSOLE ---
+        self.console_card = ctk.CTkFrame(self.workspace, fg_color=COLOR_FRAME, border_width=1, border_color=COLOR_BORDER, corner_radius=20)
         self.console_card.pack(fill="x", padx=40, pady=10)
-        ctk.CTkLabel(self.console_card, text="❱❱ SIGMA DATA INGESTION", font=("Consolas", 14, "bold"), text_color="#555").pack(anchor="w", padx=30, pady=(20, 10))
+        ctk.CTkLabel(self.console_card, text="❱❱ SIGMA DATA INGESTION", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=30, pady=(20, 10))
         
-        ctrl_f = ctk.CTkFrame(self.console_card, fg_color="transparent")
-        ctrl_f.pack(fill="x", padx=30, pady=(0, 20))
-        self.btn_browse = ctk.CTkButton(ctrl_f, text="BROWSE DATA", width=160, height=45, fg_color="#1A1A1A", border_width=1, border_color=self.neon_cyan, command=self.browse_data)
-        self.btn_browse.pack(side="left", padx=5)
-        self.lbl_path = ctk.CTkLabel(ctrl_f, text="WAITING FOR DATA INPUT...", text_color="#444", font=("Consolas", 12))
+        row1 = ctk.CTkFrame(self.console_card, fg_color="transparent")
+        row1.pack(fill="x", padx=30, pady=(0, 10))
+        self.btn_browse = ctk.CTkButton(row1, text="BROWSE DATA", width=160, height=40, fg_color=COLOR_ACCENT, text_color="white", font=("Segoe UI", 12, "bold"), command=self.browse_data)
+        self.btn_browse.pack(side="left")
+        self.lbl_path = ctk.CTkLabel(row1, text="WAITING FOR DATA INPUT...", text_color=COLOR_TEXT_MUTED, font=("Segoe UI", 12))
         self.lbl_path.pack(side="left", padx=20)
-        self.commit_input = ctk.CTkEntry(ctrl_f, placeholder_text="ENCRYPTED COMMIT MSG...", width=320, height=45, fg_color="#000", border_color="#222")
-        self.commit_input.pack(side="right", padx=10)
 
-        # Terminal Output
-        self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#000", border_width=1, border_color=self.neon_cyan, corner_radius=10)
+        row2 = ctk.CTkFrame(self.console_card, fg_color="transparent")
+        row2.pack(fill="x", padx=30, pady=(0, 20))
+        
+        # Ô nhập Commit MSG với Placeholder thông minh
+        self.commit_input = ctk.CTkEntry(row2, height=40, fg_color="#F0F2F5", border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED)
+        self.commit_input.insert(0, self.placeholder_msg)
+        self.commit_input.pack(fill="x")
+        
+        # Ràng buộc sự kiện (Event Binding)
+        self.commit_input.bind("<FocusIn>", self._on_focus_in)
+        self.commit_input.bind("<FocusOut>", self._on_focus_out)
+
+        # --- TERMINAL ---
+        self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER, corner_radius=10)
         self.term_frame.pack(fill="both", expand=True, padx=40, pady=(20, 40))
-        self.log_box = ctk.CTkTextbox(self.term_frame, fg_color="transparent", text_color=self.neon_green, font=("Consolas", 14))
-        self.log_box.pack(fill="both", expand=True, padx=15, pady=15)
+        self.term_header = ctk.CTkFrame(self.term_frame, fg_color="transparent", height=35)
+        self.term_header.pack(fill="x", padx=10, pady=(5, 0))
+        ctk.CTkLabel(self.term_header, text="SYSTEM MONITOR OUTPUT", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=5)
+        self.btn_clear = ctk.CTkButton(self.term_header, text="CLEAR LOG", width=90, height=25, fg_color="transparent", border_width=1, border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED, command=self.clear_log)
+        self.btn_clear.pack(side="right", padx=5)
+        self.log_box = ctk.CTkTextbox(self.term_frame, fg_color="transparent", text_color=COLOR_TEXT_DARK, font=("Consolas", 14))
+        self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         self.write_log("WAR ROOM PROTOCOL INITIALIZED. STANDING BY.")
 
-    # --- LOGIC HANDLING ---
-    def write_log(self, msg):
-        self.log_box.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}] > {msg}\n")
-        self.log_box.see("end")
+    # --- PLACEHOLDER LOGIC ---
+    def _on_focus_in(self, event):
+        """Khi bấm vào ô nhập: Xóa dòng chữ hướng dẫn"""
+        if self.commit_input.get() == self.placeholder_msg:
+            self.commit_input.delete(0, 'end')
+            self.commit_input.configure(text_color=COLOR_TEXT_DARK)
+
+    def _on_focus_out(self, event):
+        """Khi bấm ra ngoài: Nếu ô trống thì hiện lại dòng chữ"""
+        if not self.commit_input.get():
+            self.commit_input.insert(0, self.placeholder_msg)
+            self.commit_input.configure(text_color=COLOR_TEXT_MUTED)
+
+    # --- LOGIC HANDLING (GIỮ NGUYÊN) ---
+    def browse_data(self):
+        choice = messagebox.askyesnocancel("Data Type", "FOLDER (Yes) / FILE (No)?")
+        if choice is None: return
+        path = filedialog.askdirectory() if choice else filedialog.askopenfilename(filetypes=[("Sigma Rules", "*.yml *.yaml")])
+        if path:
+            self.selected_path, self.is_folder = path, choice
+            self.lbl_path.configure(text=f"{'DIR' if choice else 'FILE'}: {os.path.basename(path).upper()}", text_color=COLOR_ACCENT)
+            self.write_log(f"PATH STAGED: {path}")
 
     def toggle_monitor(self):
-        """Kích hoạt AlertMonitor từ file alert.py"""
         if self.mon_sw.get():
             if not self.monitor_system.running:
                 self.monitor_system.running = True
                 self.write_log("📡 SYSTEM: STARTING LIVE THREAT SCANNER...")
-                self.status_indicator.configure(text="● MONITORING", text_color=self.neon_red)
+                self.status_indicator.configure(text="● MONITORING")
+                self._blink_indicator()
                 winsound.Beep(1200, 150)
-                # Chạy logic scan trong luồng riêng để không treo UI
                 threading.Thread(target=self.monitor_system.run_logic, args=(self.write_log,), daemon=True).start()
         else:
             self.monitor_system.running = False
             self.write_log("⚪ SYSTEM: MONITORING STANDBY. SECURITY STABLE.")
-            self.status_indicator.configure(text="● SYSTEM READY", text_color=self.neon_green)
             winsound.Beep(400, 150)
 
-    def browse_data(self):
-        choice = messagebox.askyesno("Data Type", "FOLDER (Yes) / FILE (No)?")
-        if choice:
-            path = filedialog.askdirectory()
-            self.is_folder = True
+    def _blink_indicator(self):
+        if self.mon_sw.get():
+            current_color = COLOR_NEON_RED if self.blink_state else COLOR_DARK_RED
+            self.status_indicator.configure(text_color=current_color)
+            self.blink_state = not self.blink_state
+            self.after(500, self._blink_indicator)
         else:
-            path = filedialog.askopenfilename(filetypes=[("Sigma Rules", "*.yml *.yaml")])
-            self.is_folder = False
-        
-        if path:
-            self.selected_path = path
-            type_str = "DIR" if self.is_folder else "FILE"
-            self.lbl_path.configure(text=f"{type_str}: {os.path.basename(path).upper()}", text_color=self.neon_cyan)
-            self.write_log(f"PATH STAGED: {path}")
+            self.status_indicator.configure(text="● SYSTEM READY", text_color=COLOR_STATUS_GREEN)
+
+    def write_log(self, msg):
+        self.log_box.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}] > {msg}\n")
+        self.log_box.see("end")
+
+    def clear_log(self):
+        self.log_box.delete("1.0", "end")
+        self.write_log("TERMINAL PURGED. LOG SYSTEM RESET.")
+
+    def _update_system_stats(self):
+        while True:
+            cpu = psutil.cpu_percent(interval=1)
+            ram = psutil.virtual_memory().percent
+            self.cpu_val.configure(text=f"{cpu}%", text_color=COLOR_NEON_RED if cpu > 80 else COLOR_ACCENT)
+            self.ram_val.configure(text=f"{ram}%", text_color=COLOR_NEON_RED if ram > 85 else COLOR_ACCENT)
+            time.sleep(1)
 
     def start_deploy_thread(self):
-        if not self.selected_path:
-            messagebox.showwarning("System", "No data selected!")
-            return
-        threading.Thread(target=self.run_deploy, daemon=True).start()
+        if self.selected_path: threading.Thread(target=self.run_deploy, daemon=True).start()
 
     def run_deploy(self):
-        """Xử lý Ingestion: Giữ nguyên cấu trúc thư mục lồng nhau"""
-        self.write_log(f"INJECTING DATA...")
         self.btn_deploy.configure(state="disabled", text="PROCESSING...")
-        
         try:
-            base_name = os.path.basename(self.selected_path)
-            target_base = os.path.join(self.RULES_DIR, base_name)
-
+            target = os.path.join(self.RULES_DIR, os.path.basename(self.selected_path))
             count = 0
             if self.is_folder:
-                for root, dirs, files in os.walk(self.selected_path):
+                for root, _, files in os.walk(self.selected_path):
                     for file in files:
                         if file.endswith(('.yml', '.yaml')):
-                            # Tính toán đường dẫn tương đối để tái tạo cấu trúc
-                            rel_path = os.path.relpath(root, self.selected_path)
-                            dest_path = os.path.join(target_base, rel_path)
-                            
-                            if not os.path.exists(dest_path):
-                                os.makedirs(dest_path)
-                            
-                            shutil.copy(os.path.join(root, file), dest_path)
-                            count += 1
-                self.write_log(f"SUCCESS: {count} rules ingested into {target_base}")
+                            rel = os.path.relpath(root, self.selected_path)
+                            dest = os.path.join(target, rel)
+                            if not os.path.exists(dest): os.makedirs(dest)
+                            shutil.copy(os.path.join(root, file), dest); count += 1
+                self.write_log(f"SUCCESS: {count} rules ingested.")
             else:
                 if not os.path.exists(self.RULES_DIR): os.makedirs(self.RULES_DIR)
                 shutil.copy(self.selected_path, self.RULES_DIR)
-                self.write_log(f"UNIT SUCCESS: {os.path.basename(self.selected_path)} ingested.")
-            
-            winsound.Beep(2000, 200)
-        except Exception as e:
-            self.write_log(f"CRITICAL ERROR: {str(e)}")
-        finally:
-            self.btn_deploy.configure(state="normal", text="LOAD RULE")
+                self.write_log("UNIT SUCCESS: File ingested.")
+        except Exception as e: self.write_log(f"ERROR: {str(e)}")
+        finally: self.btn_deploy.configure(state="normal", text="LOAD RULE")
 
     def run_git_push(self):
         msg = self.commit_input.get()
-        if not msg: return
-        self.write_log("INITIATING CLOUD SYNCHRONIZATION...")
-        threading.Thread(target=self._git_task, args=(msg,), daemon=True).start()
+        # Kiểm tra nếu chỉ là placeholder thì không cho push
+        if msg and msg != self.placeholder_msg:
+            self.write_log("INITIATING CLOUD SYNCHRONIZATION...")
+            threading.Thread(target=self._git_task, args=(msg,), daemon=True).start()
+        else:
+            messagebox.showwarning("System", "Please enter a valid commit message!")
 
     def _git_task(self, msg):
         try:
@@ -172,19 +213,23 @@ class SOCXCommand(ctk.CTk):
                 subprocess.run(cmd, check=True, capture_output=True)
                 self.write_log(f"GIT: {' '.join(cmd)} - SUCCESS")
             self.write_log("✅ CLOUD SYNC COMPLETE.")
-        except Exception as e:
-            self.write_log(f"❌ GIT ERROR: {str(e)}")
+            # Xóa ô nhập sau khi thành công và hiện lại placeholder
+            self.commit_input.delete(0, 'end')
+            self._on_focus_out(None)
+        except Exception as e: self.write_log(f"GIT ERR: {str(e)}")
 
     def _side_btn(self, text, color, cmd):
-        btn = ctk.CTkButton(self.sidebar, text=text, fg_color="#111", border_width=1, border_color=color, hover_color=color, font=("Consolas", 13, "bold"), height=55, command=cmd)
+        btn = ctk.CTkButton(self.sidebar, text=text, fg_color="transparent", text_color=COLOR_TEXT_DARK, border_width=1, border_color=COLOR_BORDER, hover_color="#F0F2F5", font=("Segoe UI", 12, "bold"), height=55, command=cmd)
         btn.pack(fill="x", pady=12, padx=25)
         return btn
 
     def _add_stat(self, title, value, color):
-        f = ctk.CTkFrame(self.header, fg_color="#0A0A0A", border_width=1, border_color="#1A1A1A", corner_radius=15, width=200)
+        f = ctk.CTkFrame(self.header, fg_color=COLOR_FRAME, border_width=1, border_color=COLOR_BORDER, corner_radius=15, width=200)
         f.pack(side="left", expand=True, padx=10, fill="both")
-        ctk.CTkLabel(f, text=title, font=("Consolas", 10), text_color="#666").pack(pady=(15, 0))
-        ctk.CTkLabel(f, text=value, font=("Orbitron", 18, "bold"), text_color=color).pack(pady=(0, 15))
+        ctk.CTkLabel(f, text=title, font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(pady=(15, 0))
+        val_label = ctk.CTkLabel(f, text=value, font=("Segoe UI", 18, "bold"), text_color=color)
+        val_label.pack(pady=(0, 15))
+        return val_label
 
 if __name__ == "__main__":
     app = SOCXCommand()
