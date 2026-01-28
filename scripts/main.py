@@ -39,12 +39,12 @@ class SOCXCommand(ctk.CTk):
         self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#0A0A0A", border_width=1, border_color="#1A1A1A")
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
-        ctk.CTkLabel(self.sidebar, text="SYSTEM-X", font=ctk.CTkFont(size=26, weight="bold", family="Orbitron"), text_color=self.neon_cyan).pack(pady=(50, 5))
+        ctk.CTkLabel(self.sidebar, text="SIEM", font=ctk.CTkFont(size=26, weight="bold", family="Orbitron"), text_color=self.neon_cyan).pack(pady=(50, 5))
         ctk.CTkLabel(self.sidebar, text="AUTOMATION CENTER", font=("Consolas", 10), text_color="gray").pack(pady=(0, 40))
 
         # Phân đoạn các nút chức năng chính
-        self.btn_deploy = self._side_btn("🚀 STAGE RULES", self.neon_cyan, self.run_deploy)
-        self.btn_push = self._side_btn("☁️ SYNC CLOUD", self.neon_green, self.run_git_push)
+        self.btn_deploy = self._side_btn("STAGE RULES", self.neon_cyan, self.run_deploy)
+        self.btn_push = self._side_btn("SYNC CLOUD", self.neon_green, self.run_git_push)
 
         # Status Monitor Widget (Sửa lỗi thiếu biến status_indicator)
         self.mon_frame = ctk.CTkFrame(self.sidebar, fg_color="#111", corner_radius=15, border_width=1, border_color="#333")

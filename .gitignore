@@ -1,16 +1,12 @@
-﻿# Chặn file cấu hình chứa mật khẩu và token nhạy cảm
-config.json
+﻿config.json
 
-# Chặn các file tạm của Python
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Chặn tất cả các file .env ở bất kỳ đâu trong project
 **/.env
 scripts/.env
 __pycache__/
 
-# Chặn các file log và dữ liệu tạm
 *.ndjson
 sigma_rules/
