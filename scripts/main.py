@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import os, shutil, subprocess, threading, winsound
 from datetime import datetime
-# Import Class AlertMonitor từ file alert1.py của mày
+# Đảm bảo file alert.py có Class AlertMonitor
 from alert import AlertMonitor 
 
 # --- CẤU HÌNH GIAO DIỆN ---
@@ -43,10 +43,10 @@ class SOCXCommand(ctk.CTk):
         ctk.CTkLabel(self.sidebar, text="AUTOMATION CENTER", font=("Consolas", 10), text_color="gray").pack(pady=(0, 40))
 
         # Phân đoạn các nút chức năng chính
-        self.btn_deploy = self._side_btn("STAGE RULES", self.neon_cyan, self.run_deploy)
-        self.btn_push = self._side_btn("SYNC CLOUD", self.neon_green, self.run_git_push)
+        self.btn_deploy = self._side_btn("LOAD RULE", self.neon_cyan, self.run_deploy)
+        self.btn_push = self._side_btn("GIT PUSH", self.neon_green, self.run_git_push)
 
-        # Status Monitor Widget (Sửa lỗi thiếu biến status_indicator)
+        # Status Monitor Widget
         self.mon_frame = ctk.CTkFrame(self.sidebar, fg_color="#111", corner_radius=15, border_width=1, border_color="#333")
         self.mon_frame.pack(side="bottom", fill="x", padx=20, pady=30)
         
@@ -90,8 +90,30 @@ class SOCXCommand(ctk.CTk):
         self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#000", border_width=1, border_color=self.neon_cyan, corner_radius=10)
         self.term_frame.pack(fill="both", expand=True, padx=40, pady=(20, 40))
         
+        # Header của Terminal chứa nút Clear
+        self.term_header = ctk.CTkFrame(self.term_frame, fg_color="transparent", height=30)
+        self.term_header.pack(fill="x", padx=10, pady=(5, 0))
+        
+        ctk.CTkLabel(self.term_header, text="SYSTEM MONITOR OUTPUT", font=("Consolas", 11, "bold"), text_color="#333").pack(side="left", padx=5)
+        
+        self.btn_clear = ctk.CTkButton(
+            self.term_header, 
+            text="CLEAR LOG", 
+            width=80, 
+            height=20, 
+            fg_color="transparent", 
+            hover_color="#222",
+            border_width=1,
+            border_color="#444",
+            text_color="#888",
+            font=("Consolas", 10, "bold"),
+            command=self.clear_log
+        )
+        self.btn_clear.pack(side="right", padx=5)
+        
         self.log_box = ctk.CTkTextbox(self.term_frame, fg_color="transparent", text_color=self.neon_green, font=("Consolas", 14))
-        self.log_box.pack(fill="both", expand=True, padx=15, pady=15)
+        self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
         self.write_log("WAR ROOM PROTOCOL INITIALIZED. STANDING BY.")
 
     # --- UI HELPERS ---
@@ -110,6 +132,12 @@ class SOCXCommand(ctk.CTk):
     def write_log(self, msg):
         self.log_box.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}] > {msg}\n")
         self.log_box.see("end")
+
+    def clear_log(self):
+        """Xóa sạch Terminal Output"""
+        self.log_box.delete("1.0", "end")
+        self.write_log("TERMINAL PURGED. LOG SYSTEM RESET.")
+        self.play_fx(800)
 
     def play_fx(self, freq):
         winsound.Beep(freq, 150)
@@ -166,14 +194,12 @@ class SOCXCommand(ctk.CTk):
             self.write_log(f"❌ GIT ERROR: {str(e)}")
 
     def toggle_monitor(self):
-        """Kích hoạt hoặc tắt Monitor từ Class AlertMonitor"""
         if self.mon_sw.get():
             if not self.monitor_system.running:
                 self.monitor_system.running = True
                 self.write_log("📡 SYSTEM: STARTING LIVE THREAT SCANNER...")
                 self.status_indicator.configure(text="● MONITORING", text_color=self.neon_red)
                 self.play_fx(1200)
-                # Chạy logic Alert trong Thread riêng
                 threading.Thread(target=self.monitor_system.run_logic, args=(self.write_log,), daemon=True).start()
         else:
             self.monitor_system.running = False
