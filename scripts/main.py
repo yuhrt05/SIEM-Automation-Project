@@ -2,6 +2,8 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import os, shutil, subprocess, threading, winsound
 from datetime import datetime
+# Đảm bảo file alert.py nằm cùng thư mục và có class AlertMonitor
+from alert import AlertMonitor 
 
 # --- CẤU HÌNH GIAO DIỆN ---
 ctk.set_appearance_mode("dark")
@@ -13,12 +15,12 @@ class SOCXCommand(ctk.CTk):
 
         self.title("⚡ SOC TACTICAL COMMAND - X PROTOCOL ⚡")
         self.geometry("1100x750")
-
-        # Cấu hình màu sắc Cyberpunk
+        # 1. Khởi tạo hệ thống Monitor (Hàng của bạn đây!)
+        self.monitor_system = AlertMonitor()
+        # 2. Cấu hình màu sắc Cyberpunk
         self.neon_cyan = "#00F0FF"
         self.neon_green = "#00FF41"
         self.neon_red = "#FF003C"
-        
         self.RULES_DIR = "rules/"
         self.selected_path = None
         self.is_folder = False
@@ -28,8 +30,7 @@ class SOCXCommand(ctk.CTk):
     def _init_ui(self):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
-
-        # --- SIDEBAR ---
+        # --- SIDEBAR: SYSTEM NAVIGATOR ---
         self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#0A0A0A", border_width=1, border_color="#1A1A1A")
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
@@ -39,13 +40,23 @@ class SOCXCommand(ctk.CTk):
         self.btn_deploy = self._side_btn("LOAD RULE", self.neon_cyan, self.start_deploy_thread)
         self.btn_push = self._side_btn("GIT PUSH", self.neon_green, self.run_git_push)
 
+        # Status Monitor Widget (Cụm điều khiển Alert)
+        self.mon_frame = ctk.CTkFrame(self.sidebar, fg_color="#111", corner_radius=15, border_width=1, border_color="#333")
+        self.mon_frame.pack(side="bottom", fill="x", padx=20, pady=30)
+        
+        self.status_indicator = ctk.CTkLabel(self.mon_frame, text="● SYSTEM READY", text_color=self.neon_green, font=("Consolas", 12, "bold"))
+        self.status_indicator.pack(pady=(15, 5))
+
+        self.mon_sw = ctk.CTkSwitch(self.mon_frame, text="THREAT SCAN", progress_color=self.neon_red, font=("Consolas", 12, "bold"), command=self.toggle_monitor)
+        self.mon_sw.pack(pady=(5, 15), padx=20)
+
         # --- MAIN WORKSPACE ---
         self.workspace = ctk.CTkFrame(self, fg_color="#050505", corner_radius=0)
         self.workspace.grid(row=0, column=1, sticky="nsew")
 
+        # Header Stats
         self.header = ctk.CTkFrame(self.workspace, height=100, fg_color="transparent")
         self.header.pack(fill="x", padx=40, pady=(40, 20))
-        
         self._add_stat("TOTAL RULES", "1,266", self.neon_cyan)
         self._add_stat("CLOUD STATUS", "ACTIVE", self.neon_green)
         self._add_stat("SOC OPERATOR", "yuhrt05", self.neon_cyan)
@@ -53,33 +64,45 @@ class SOCXCommand(ctk.CTk):
         # Ingestion Console
         self.console_card = ctk.CTkFrame(self.workspace, fg_color="#0F0F0F", border_width=1, border_color="#222", corner_radius=20)
         self.console_card.pack(fill="x", padx=40, pady=10)
-
         ctk.CTkLabel(self.console_card, text="❱❱ SIGMA DATA INGESTION", font=("Consolas", 14, "bold"), text_color="#555").pack(anchor="w", padx=30, pady=(20, 10))
         
         ctrl_f = ctk.CTkFrame(self.console_card, fg_color="transparent")
         ctrl_f.pack(fill="x", padx=30, pady=(0, 20))
-
         self.btn_browse = ctk.CTkButton(ctrl_f, text="BROWSE DATA", width=160, height=45, fg_color="#1A1A1A", border_width=1, border_color=self.neon_cyan, command=self.browse_data)
         self.btn_browse.pack(side="left", padx=5)
-
         self.lbl_path = ctk.CTkLabel(ctrl_f, text="WAITING FOR DATA INPUT...", text_color="#444", font=("Consolas", 12))
         self.lbl_path.pack(side="left", padx=20)
-
         self.commit_input = ctk.CTkEntry(ctrl_f, placeholder_text="ENCRYPTED COMMIT MSG...", width=320, height=45, fg_color="#000", border_color="#222")
         self.commit_input.pack(side="right", padx=10)
 
         # Terminal Output
         self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#000", border_width=1, border_color=self.neon_cyan, corner_radius=10)
         self.term_frame.pack(fill="both", expand=True, padx=40, pady=(20, 40))
-        
         self.log_box = ctk.CTkTextbox(self.term_frame, fg_color="transparent", text_color=self.neon_green, font=("Consolas", 14))
         self.log_box.pack(fill="both", expand=True, padx=15, pady=15)
         
         self.write_log("WAR ROOM PROTOCOL INITIALIZED. STANDING BY.")
 
+    # --- LOGIC HANDLING ---
     def write_log(self, msg):
         self.log_box.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}] > {msg}\n")
         self.log_box.see("end")
+
+    def toggle_monitor(self):
+        """Kích hoạt AlertMonitor từ file alert.py"""
+        if self.mon_sw.get():
+            if not self.monitor_system.running:
+                self.monitor_system.running = True
+                self.write_log("📡 SYSTEM: STARTING LIVE THREAT SCANNER...")
+                self.status_indicator.configure(text="● MONITORING", text_color=self.neon_red)
+                winsound.Beep(1200, 150)
+                # Chạy logic scan trong luồng riêng để không treo UI
+                threading.Thread(target=self.monitor_system.run_logic, args=(self.write_log,), daemon=True).start()
+        else:
+            self.monitor_system.running = False
+            self.write_log("⚪ SYSTEM: MONITORING STANDBY. SECURITY STABLE.")
+            self.status_indicator.configure(text="● SYSTEM READY", text_color=self.neon_green)
+            winsound.Beep(400, 150)
 
     def browse_data(self):
         choice = messagebox.askyesno("Data Type", "FOLDER (Yes) / FILE (No)?")
@@ -95,7 +118,6 @@ class SOCXCommand(ctk.CTk):
             type_str = "DIR" if self.is_folder else "FILE"
             self.lbl_path.configure(text=f"{type_str}: {os.path.basename(path).upper()}", text_color=self.neon_cyan)
             self.write_log(f"PATH STAGED: {path}")
-            winsound.Beep(1200, 150)
 
     def start_deploy_thread(self):
         if not self.selected_path:
@@ -104,37 +126,30 @@ class SOCXCommand(ctk.CTk):
         threading.Thread(target=self.run_deploy, daemon=True).start()
 
     def run_deploy(self):
-        """Logic Ingestion: Giữ nguyên cấu trúc thư mục lồng nhau"""
+        """Xử lý Ingestion: Giữ nguyên cấu trúc thư mục lồng nhau"""
         self.write_log(f"INJECTING DATA...")
         self.btn_deploy.configure(state="disabled", text="PROCESSING...")
         
         try:
-            # Tên thư mục gốc mà người dùng đã chọn
-            base_folder_name = os.path.basename(self.selected_path)
-            # Thư mục đích cuối cùng: rules/ten_thu_muc_chon
-            target_base_dir = os.path.join(self.RULES_DIR, base_folder_name)
+            base_name = os.path.basename(self.selected_path)
+            target_base = os.path.join(self.RULES_DIR, base_name)
 
             count = 0
             if self.is_folder:
                 for root, dirs, files in os.walk(self.selected_path):
                     for file in files:
                         if file.endswith(('.yml', '.yaml')):
-                            # 1. Lấy đường dẫn tương đối của file so với thư mục gốc được chọn
-                            relative_path = os.path.relpath(root, self.selected_path)
+                            # Tính toán đường dẫn tương đối để tái tạo cấu trúc
+                            rel_path = os.path.relpath(root, self.selected_path)
+                            dest_path = os.path.join(target_base, rel_path)
                             
-                            # 2. Tạo đường dẫn đích tương ứng trong thư mục rules/
-                            dest_dir = os.path.join(target_base_dir, relative_path)
+                            if not os.path.exists(dest_path):
+                                os.makedirs(dest_path)
                             
-                            if not os.path.exists(dest_dir):
-                                os.makedirs(dest_dir)
-                            
-                            source_file = os.path.join(root, file)
-                            shutil.copy(source_file, dest_dir)
+                            shutil.copy(os.path.join(root, file), dest_path)
                             count += 1
-                
-                self.write_log(f"SUCCESS: {count} rules ingested into {target_base_dir}")
+                self.write_log(f"SUCCESS: {count} rules ingested into {target_base}")
             else:
-                # Nếu là 1 file đơn lẻ, copy thẳng vào rules/
                 if not os.path.exists(self.RULES_DIR): os.makedirs(self.RULES_DIR)
                 shutil.copy(self.selected_path, self.RULES_DIR)
                 self.write_log(f"UNIT SUCCESS: {os.path.basename(self.selected_path)} ingested.")
@@ -147,9 +162,8 @@ class SOCXCommand(ctk.CTk):
 
     def run_git_push(self):
         msg = self.commit_input.get()
-        if not msg:
-            messagebox.showwarning("System", "Input Commit Message!")
-            return
+        if not msg: return
+        self.write_log("INITIATING CLOUD SYNCHRONIZATION...")
         threading.Thread(target=self._git_task, args=(msg,), daemon=True).start()
 
     def _git_task(self, msg):
