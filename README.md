@@ -1,1 +1,1 @@
-![image](images/Sơ đồ Automation.png)
+![image](images/Sơ%20đồ%20Automation.png)
