@@ -36,7 +36,7 @@ def fast_deploy():
     print(f"[*] Mục tiêu: Space [{SPACE_ID}]") # Xác nhận Space ID
     
     # Bước 1: Convert rules Sigma sang NDJSON
-    cmd = f'{sigma_cmd} convert -t elasticsearch -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
+    cmd = f'{sigma_cmd} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
     print("[*] Đang convert rules Sigma...")
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
     
