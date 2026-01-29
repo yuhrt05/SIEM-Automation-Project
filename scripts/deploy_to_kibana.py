@@ -5,38 +5,38 @@ import io
 import os
 import shutil
 
-# Đảm bảo in tiếng Việt không lỗi trên mọi môi trường
+# Đảm bảo in tiếng Việt không lỗi
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # --- CẤU HÌNH HỆ THỐNG ---
-URL = os.getenv('ELASTIC_URL')
+# Lấy URL từ GitHub Secret
+URL = os.getenv('ELASTIC_URL') 
 USER = os.getenv('ELASTIC_USERNAME')
 PASS = os.getenv('ELASTIC_PASSWORD')
+SPACE_ID = os.getenv('KIBANA_SPACE', 'default')
 
-if os.getenv('GITHUB_ACTIONS'):
-    RULES_INPUT = 'rules/'
-    NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
+RULES_INPUT = 'rules/'
+NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
 
 def get_sigma_path():
     """Tìm lệnh sigma phù hợp cho cả Windows và Linux (GitHub Actions)"""
     sigma_path = shutil.which("sigma")
     if sigma_path:
         return f'"{sigma_path}"'
-
     python_scripts_dir = os.path.join(os.path.dirname(sys.executable), "Scripts")
     sigma_exe = os.path.join(python_scripts_dir, "sigma.exe")
     if os.path.exists(sigma_exe):
         return f'"{sigma_exe}"'
-    
     return "sigma"
 
 def fast_deploy():
     sigma_cmd = get_sigma_path()
     print(f"[*] Đang sử dụng Sigma CLI: {sigma_cmd}")
     print(f"[*] Kết nối đến SIEM qua URL: {URL}")
+    print(f"[*] Mục tiêu: Space [{SPACE_ID}]") # Xác nhận Space ID
     
     # Bước 1: Convert rules Sigma sang NDJSON
-    cmd = f'{sigma_cmd} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
+    cmd = f'{sigma_cmd} convert -t elasticsearch -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
     print("[*] Đang convert rules Sigma...")
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
     
@@ -44,27 +44,27 @@ def fast_deploy():
         print(f"[-] Lỗi Sigma CLI: {result.stderr}")
         return
 
-    if not os.path.exists(NDJSON_OUTPUT):
-        print("[-] Lỗi: Không tạo được file NDJSON.")
-        return
+    # Bước 2: Xây dựng URL API dựa trên Space
+    if SPACE_ID == 'default':
+        api_url = f"{URL}/api/detection_engine/rules/_import"
+    else:
+        api_url = f"{URL}/s/{SPACE_ID}/api/detection_engine/rules/_import"
 
-    print(f"[+] Convert thành công: {NDJSON_OUTPUT}")
-
-    # Bước 2: Nạp file lên Kibana SIEM qua API
-    print("[*] Đang đẩy luật lên SIEM...")
+    # Bước 3: Nạp file lên Kibana SIEM qua API
+    print(f"[*] Đang đẩy luật lên SIEM qua API: {api_url}...")
     try:
         with open(NDJSON_OUTPUT, 'rb') as f:
             res = requests.post(
-                f"{URL}/api/detection_engine/rules/_import",
+                api_url,
                 headers={"kbn-xsrf": "true"},
                 auth=(USER, PASS),
                 files={'file': ('rules.ndjson', f, 'application/x-ndjson')},
                 params={"overwrite": "true"}
             )
         if res.status_code == 200:
-            print("THÀNH CÔNG! Luật đã được nạp vào SIEM.")
+            print(f"✅ THÀNH CÔNG! Luật đã được nạp vào Space [{SPACE_ID}].")
         else:
-            print(f"Lỗi API SIEM ({res.status_code}): {res.text}")
+            print(f"❌ Lỗi API SIEM ({res.status_code}): {res.text}")
     except Exception as e:
         print(f"[-] Lỗi kết nối: {e}")
 
