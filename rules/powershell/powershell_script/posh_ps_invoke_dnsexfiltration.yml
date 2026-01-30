@@ -1,8 +1,9 @@
 title: Powershell DNSExfiltration
 id: d59d7842-9a21-4bc6-ba98-64bfe0091355
 status: test
-description: '[Source File: posh_ps_invoke_dnsexfiltration.yml] DNSExfiltrator allows
-  for transferring (exfiltrate) a file over a DNS request covert channel'
+description: '[Source: rules/powershell/powershell_script/posh_ps_invoke_dnsexfiltration.yml]
+  [Source File: posh_ps_invoke_dnsexfiltration.yml] DNSExfiltrator allows for transferring
+  (exfiltrate) a file over a DNS request covert channel'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1048/T1048.md#atomic-test-3---dnsexfiltration-doh
 - https://github.com/Arno0x/DNSExfiltrator
@@ -28,5 +29,3 @@ detection:
 falsepositives:
 - Legitimate script
 level: high
-
-# Force Redeploy 2026-01-30

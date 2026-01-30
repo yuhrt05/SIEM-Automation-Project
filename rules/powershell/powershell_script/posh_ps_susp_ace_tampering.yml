@@ -1,9 +1,10 @@
 title: Potential Persistence Via Security Descriptors - ScriptBlock
 id: 2f77047c-e6e9-4c11-b088-a3de399524cd
 status: test
-description: '[Source File: posh_ps_susp_ace_tampering.yml] Detects usage of certain
-  functions and keywords that are used to manipulate security descriptors in order
-  to potentially set a backdoor. As seen used in the DAMP project.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_ace_tampering.yml]
+  [Source File: posh_ps_susp_ace_tampering.yml] Detects usage of certain functions
+  and keywords that are used to manipulate security descriptors in order to potentially
+  set a backdoor. As seen used in the DAMP project.'
 references:
 - https://github.com/HarmJ0y/DAMP
 author: Nasreddine Bencherchali (Nextron Systems)
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

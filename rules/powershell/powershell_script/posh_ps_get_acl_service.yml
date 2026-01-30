@@ -1,8 +1,9 @@
 title: Service Registry Permissions Weakness Check
 id: 95afc12e-3cbb-40c3-9340-84a032e596a3
 status: test
-description: '[Source File: posh_ps_get_acl_service.yml] Adversaries may execute their
-  own malicious payloads by hijacking the Registry entries used by services.
+description: '[Source: rules/powershell/powershell_script/posh_ps_get_acl_service.yml]
+  [Source File: posh_ps_get_acl_service.yml] Adversaries may execute their own malicious
+  payloads by hijacking the Registry entries used by services.
 
   Adversaries may use flaws in the permissions for registry to redirect from the originally
   specified executable to one that they control, in order to launch their own code
@@ -35,5 +36,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

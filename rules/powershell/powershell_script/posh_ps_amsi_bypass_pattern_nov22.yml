@@ -1,8 +1,9 @@
 title: AMSI Bypass Pattern Assembly GetType
 id: e0d6c087-2d1c-47fd-8799-3904103c5a98
 status: test
-description: '[Source File: posh_ps_amsi_bypass_pattern_nov22.yml] Detects code fragments
-  found in small and obfuscated AMSI bypass PowerShell scripts'
+description: '[Source: rules/powershell/powershell_script/posh_ps_amsi_bypass_pattern_nov22.yml]
+  [Source File: posh_ps_amsi_bypass_pattern_nov22.yml] Detects code fragments found
+  in small and obfuscated AMSI bypass PowerShell scripts'
 references:
 - https://www.mdsec.co.uk/2018/06/exploring-powershell-amsi-and-logging-evasion/
 - https://twitter.com/cyb3rops/status/1588574518057979905?s=20&t=A7hh93ONM7ni1Rj1jO5OaA
@@ -26,5 +27,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

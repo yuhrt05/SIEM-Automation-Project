@@ -1,8 +1,9 @@
 title: Powershell Add Name Resolution Policy Table Rule
 id: 4368354e-1797-463c-bc39-a309effbe8d7
 status: test
-description: '[Source File: posh_ps_add_dnsclient_rule.yml] Detects powershell scripts
-  that adds a Name Resolution Policy Table (NRPT) rule for the specified namespace.
+description: '[Source: rules/powershell/powershell_script/posh_ps_add_dnsclient_rule.yml]
+  [Source File: posh_ps_add_dnsclient_rule.yml] Detects powershell scripts that adds
+  a Name Resolution Policy Table (NRPT) rule for the specified namespace.
 
   This will bypass the default DNS server and uses a specified server for answering
   the query.
@@ -31,5 +32,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

@@ -1,8 +1,9 @@
 title: PowerShell Remote Session Creation
 id: a0edd39f-a0c6-4c17-8141-261f958e8d8f
 status: test
-description: '[Source File: posh_ps_remote_session_creation.yml] Adversaries may abuse
-  PowerShell commands and scripts for execution.
+description: '[Source: rules/powershell/powershell_script/posh_ps_remote_session_creation.yml]
+  [Source File: posh_ps_remote_session_creation.yml] Adversaries may abuse PowerShell
+  commands and scripts for execution.
 
   PowerShell is a powerful interactive command-line interface and scripting environment
   included in the Windows operating system
@@ -30,5 +31,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

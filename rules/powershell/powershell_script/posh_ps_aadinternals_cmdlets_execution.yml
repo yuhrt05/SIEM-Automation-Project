@@ -4,9 +4,10 @@ related:
 - id: c86500e9-a645-4680-98d7-f882c70c1ea3
   type: similar
 status: test
-description: '[Source File: posh_ps_aadinternals_cmdlets_execution.yml] Detects ADDInternals
-  Cmdlet execution. A tool for administering Azure AD and Office 365. Which can be
-  abused by threat actors to attack Azure AD or Office 365.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_aadinternals_cmdlets_execution.yml]
+  [Source File: posh_ps_aadinternals_cmdlets_execution.yml] Detects ADDInternals Cmdlet
+  execution. A tool for administering Azure AD and Office 365. Which can be abused
+  by threat actors to attack Azure AD or Office 365.'
 references:
 - https://o365blog.com/aadinternals/
 - https://github.com/Gerenios/AADInternals
@@ -58,5 +59,3 @@ detection:
 falsepositives:
 - Legitimate use of the library for administrative activity
 level: high
-
-# Force Redeploy 2026-01-30

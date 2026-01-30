@@ -1,8 +1,9 @@
 title: PSAsyncShell - Asynchronous TCP Reverse Shell
 id: afd3df04-948d-46f6-ae44-25966c44b97f
 status: test
-description: '[Source File: posh_ps_psasyncshell.yml] Detects the use of PSAsyncShell
-  an Asynchronous TCP Reverse Shell written in powershell'
+description: '[Source: rules/powershell/powershell_script/posh_ps_psasyncshell.yml]
+  [Source File: posh_ps_psasyncshell.yml] Detects the use of PSAsyncShell an Asynchronous
+  TCP Reverse Shell written in powershell'
 references:
 - https://github.com/JoelGMSec/PSAsyncShell
 author: Nasreddine Bencherchali (Nextron Systems)
@@ -21,5 +22,3 @@ detection:
 falsepositives:
 - Unlikely
 level: high
-
-# Force Redeploy 2026-01-30

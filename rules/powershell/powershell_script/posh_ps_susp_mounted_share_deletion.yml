@@ -1,9 +1,10 @@
 title: PowerShell Deleted Mounted Share
 id: 66a4d409-451b-4151-94f4-a55d559c49b0
 status: test
-description: '[Source File: posh_ps_susp_mounted_share_deletion.yml] Detects when
-  when a mounted share is removed. Adversaries may remove share connections that are
-  no longer useful in order to clean up traces of their operation'
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_mounted_share_deletion.yml]
+  [Source File: posh_ps_susp_mounted_share_deletion.yml] Detects when when a mounted
+  share is removed. Adversaries may remove share connections that are no longer useful
+  in order to clean up traces of their operation'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1070.005/T1070.005.md
 author: oscd.community, @redcanary, Zach Stanford @svch0st
@@ -32,5 +33,3 @@ detection:
 falsepositives:
 - Administrators or Power users may remove their shares via cmd line
 level: medium
-
-# Force Redeploy 2026-01-30

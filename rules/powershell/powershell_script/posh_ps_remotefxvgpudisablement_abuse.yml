@@ -8,8 +8,9 @@ related:
 - id: 38a7625e-b2cb-485d-b83d-aff137d859f4
   type: similar
 status: test
-description: '[Source File: posh_ps_remotefxvgpudisablement_abuse.yml] Detects PowerShell
-  module creation where the module Contents are set to "function Get-VMRemoteFXPhysicalVideoAdapter".
+description: '[Source: rules/powershell/powershell_script/posh_ps_remotefxvgpudisablement_abuse.yml]
+  [Source File: posh_ps_remotefxvgpudisablement_abuse.yml] Detects PowerShell module
+  creation where the module Contents are set to "function Get-VMRemoteFXPhysicalVideoAdapter".
   This could be a sign of potential abuse of the "RemoteFXvGPUDisablement.exe" binary
   which is known to be vulnerable to module load-order hijacking.'
 references:
@@ -31,5 +32,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

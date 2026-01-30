@@ -8,8 +8,9 @@ related:
 - id: bdeb2cff-af74-4094-8426-724dc937f20a
   type: derived
 status: test
-description: '[Source File: posh_ps_set_acl_susp_location.yml] Detects PowerShell
-  scripts to set the ACL to a file in the Windows folder'
+description: '[Source: rules/powershell/powershell_script/posh_ps_set_acl_susp_location.yml]
+  [Source File: posh_ps_set_acl_susp_location.yml] Detects PowerShell scripts to set
+  the ACL to a file in the Windows folder'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/74438b0237d141ee9c99747976447dc884cb1a39/atomics/T1505.005/T1505.005.md
 - https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-acl?view=powershell-5.1
@@ -46,5 +47,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

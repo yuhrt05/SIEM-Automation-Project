@@ -1,9 +1,9 @@
 title: HackTool - Evil-WinRm Execution - PowerShell Module
 id: 9fe55ea2-4cd6-4491-8a54-dd6871651b51
 status: test
-description: '[Source File: posh_pm_hktl_evil_winrm_execution.yml] Detects the execution
-  of Evil-WinRM via PowerShell Module logs by leveraging the hardcoded strings inside
-  the utility.
+description: '[Source: rules/powershell/powershell_module/posh_pm_hktl_evil_winrm_execution.yml]
+  [Source File: posh_pm_hktl_evil_winrm_execution.yml] Detects the execution of Evil-WinRM
+  via PowerShell Module logs by leveraging the hardcoded strings inside the utility.
 
   '
 references:
@@ -43,5 +43,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

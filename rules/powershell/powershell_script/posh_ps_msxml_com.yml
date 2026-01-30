@@ -1,8 +1,9 @@
 title: Powershell MsXml COM Object
 id: 78aa1347-1517-4454-9982-b338d6df8343
 status: test
-description: '[Source File: posh_ps_msxml_com.yml] Adversaries may abuse PowerShell
-  commands and scripts for execution.
+description: '[Source: rules/powershell/powershell_script/posh_ps_msxml_com.yml] [Source
+  File: posh_ps_msxml_com.yml] Adversaries may abuse PowerShell commands and scripts
+  for execution.
 
   PowerShell is a powerful interactive command-line interface and scripting environment
   included in the Windows operating system. (Citation: TechNet PowerShell)
@@ -36,5 +37,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

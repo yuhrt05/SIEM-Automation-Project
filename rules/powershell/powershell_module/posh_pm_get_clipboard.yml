@@ -1,9 +1,9 @@
 title: PowerShell Get Clipboard
 id: 4cbd4f12-2e22-43e3-882f-bff3247ffb78
 status: test
-description: '[Source File: posh_pm_get_clipboard.yml] A General detection for the
-  Get-Clipboard commands in PowerShell logs. This could be an adversary capturing
-  clipboard contents.'
+description: '[Source: rules/powershell/powershell_module/posh_pm_get_clipboard.yml]
+  [Source File: posh_pm_get_clipboard.yml] A General detection for the Get-Clipboard
+  commands in PowerShell logs. This could be an adversary capturing clipboard contents.'
 references:
 - https://github.com/OTRF/detection-hackathon-apt29/issues/16
 - https://github.com/OTRF/ThreatHunter-Playbook/blob/2d4257f630f4c9770f78d0c1df059f891ffc3fec/docs/evals/apt29/detections/7.A.2_F4609F7E-C4DB-4327-91D4-59A58C962A02.md
@@ -24,5 +24,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

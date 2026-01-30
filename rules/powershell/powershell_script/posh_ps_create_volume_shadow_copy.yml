@@ -1,9 +1,10 @@
 title: Create Volume Shadow Copy with Powershell
 id: afd12fed-b0ec-45c9-a13d-aa86625dac81
 status: test
-description: '[Source File: posh_ps_create_volume_shadow_copy.yml] Adversaries may
-  attempt to access or create a copy of the Active Directory domain database in order
-  to steal credential information'
+description: '[Source: rules/powershell/powershell_script/posh_ps_create_volume_shadow_copy.yml]
+  [Source File: posh_ps_create_volume_shadow_copy.yml] Adversaries may attempt to
+  access or create a copy of the Active Directory domain database in order to steal
+  credential information'
 references:
 - https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1&viewFallbackFrom=powershell-7
 author: frack113
@@ -26,5 +27,3 @@ detection:
 falsepositives:
 - Legitimate PowerShell scripts
 level: high
-
-# Force Redeploy 2026-01-30

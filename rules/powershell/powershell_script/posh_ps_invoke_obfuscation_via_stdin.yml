@@ -1,8 +1,9 @@
 title: Invoke-Obfuscation Via Stdin - Powershell
 id: 86b896ba-ffa1-4fea-83e3-ee28a4c915c7
 status: test
-description: '[Source File: posh_ps_invoke_obfuscation_via_stdin.yml] Detects Obfuscated
-  Powershell via Stdin in Scripts'
+description: '[Source: rules/powershell/powershell_script/posh_ps_invoke_obfuscation_via_stdin.yml]
+  [Source File: posh_ps_invoke_obfuscation_via_stdin.yml] Detects Obfuscated Powershell
+  via Stdin in Scripts'
 references:
 - https://github.com/SigmaHQ/sigma/issues/1009
 author: Nikita Nazarov, oscd.community
@@ -24,5 +25,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

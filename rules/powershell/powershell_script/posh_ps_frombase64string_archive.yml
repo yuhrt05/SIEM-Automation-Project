@@ -4,9 +4,10 @@ related:
 - id: d75d6b6b-adb9-48f7-824b-ac2e786efe1f
   type: similar
 status: test
-description: '[Source File: posh_ps_frombase64string_archive.yml] Detects attempts
-  of decoding a base64 Gzip archive in a PowerShell script. This technique is often
-  used as a method to load malicious content into memory afterward.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_frombase64string_archive.yml]
+  [Source File: posh_ps_frombase64string_archive.yml] Detects attempts of decoding
+  a base64 Gzip archive in a PowerShell script. This technique is often used as a
+  method to load malicious content into memory afterward.'
 references:
 - https://speakerdeck.com/heirhabarov/hunting-for-powershell-abuse?slide=43
 author: frack113
@@ -28,5 +29,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

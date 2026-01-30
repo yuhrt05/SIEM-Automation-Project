@@ -1,9 +1,10 @@
 title: Potential Packet Capture Activity Via Start-NetEventSession - ScriptBlock
 id: da34e323-1e65-42db-83be-a6725ac2caa3
 status: test
-description: '[Source File: posh_ps_packet_capture.yml] Detects the execution of powershell
-  scripts with calls to the "Start-NetEventSession" cmdlet. Which allows an attacker
-  to start event and packet capture for a network event session.
+description: '[Source: rules/powershell/powershell_script/posh_ps_packet_capture.yml]
+  [Source File: posh_ps_packet_capture.yml] Detects the execution of powershell scripts
+  with calls to the "Start-NetEventSession" cmdlet. Which allows an attacker to start
+  event and packet capture for a network event session.
 
   Adversaries may attempt to capture network to gather information over the course
   of an operation.
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Legitimate network diagnostic scripts.
 level: medium
-
-# Force Redeploy 2026-01-30

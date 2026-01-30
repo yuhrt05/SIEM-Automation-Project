@@ -1,8 +1,9 @@
 title: Suspicious Start-Process PassThru
 id: 0718cd72-f316-4aa2-988f-838ea8533277
 status: test
-description: '[Source File: posh_ps_susp_start_process.yml] Powershell use PassThru
-  option to start in background'
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_start_process.yml]
+  [Source File: posh_ps_susp_start_process.yml] Powershell use PassThru option to
+  start in background'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1036.003/T1036.003.md
 - https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/Start-Process?view=powershell-5.1&viewFallbackFrom=powershell-7
@@ -25,5 +26,3 @@ detection:
 falsepositives:
 - Legitimate PowerShell scripts
 level: medium
-
-# Force Redeploy 2026-01-30

@@ -1,8 +1,9 @@
 title: Powershell Keylogging
 id: 34f90d3c-c297-49e9-b26d-911b05a4866c
 status: test
-description: '[Source File: posh_ps_keylogging.yml] Adversaries may log user keystrokes
-  to intercept credentials as the user types them.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_keylogging.yml]
+  [Source File: posh_ps_keylogging.yml] Adversaries may log user keystrokes to intercept
+  credentials as the user types them.'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1218/T1218.md
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1056.001/src/Get-Keystrokes.ps1
@@ -28,5 +29,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

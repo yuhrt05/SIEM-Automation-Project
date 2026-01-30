@@ -1,8 +1,9 @@
 title: Code Executed Via Office Add-in XLL File
 id: 36fbec91-fa1b-4d5d-8df1-8d8edcb632ad
 status: test
-description: '[Source File: posh_ps_office_comobject_registerxll.yml] Adversaries
-  may abuse Microsoft Office add-ins to obtain persistence on a compromised system.
+description: '[Source: rules/powershell/powershell_script/posh_ps_office_comobject_registerxll.yml]
+  [Source File: posh_ps_office_comobject_registerxll.yml] Adversaries may abuse Microsoft
+  Office add-ins to obtain persistence on a compromised system.
 
   Office add-ins can be used to add functionality to Office programs
 
@@ -29,5 +30,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

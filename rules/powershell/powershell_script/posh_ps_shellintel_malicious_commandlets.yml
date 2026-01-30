@@ -1,8 +1,9 @@
 title: Malicious ShellIntel PowerShell Commandlets
 id: 402e1e1d-ad59-47b6-bf80-1ee44985b3a7
 status: test
-description: '[Source File: posh_ps_shellintel_malicious_commandlets.yml] Detects
-  Commandlet names from ShellIntel exploitation scripts.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_shellintel_malicious_commandlets.yml]
+  [Source File: posh_ps_shellintel_malicious_commandlets.yml] Detects Commandlet names
+  from ShellIntel exploitation scripts.'
 references:
 - https://github.com/Shellntel/scripts/
 author: Max Altgelt (Nextron Systems), Tobias Michalski (Nextron Systems)
@@ -25,5 +26,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

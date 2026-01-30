@@ -1,8 +1,9 @@
 title: Invoke-Obfuscation Via Use Rundll32 - PowerShell
 id: a5a30a6e-75ca-4233-8b8c-42e0f2037d3b
 status: test
-description: '[Source File: posh_ps_invoke_obfuscation_via_use_rundll32.yml] Detects
-  Obfuscated Powershell via use Rundll32 in Scripts'
+description: '[Source: rules/powershell/powershell_script/posh_ps_invoke_obfuscation_via_use_rundll32.yml]
+  [Source File: posh_ps_invoke_obfuscation_via_use_rundll32.yml] Detects Obfuscated
+  Powershell via use Rundll32 in Scripts'
 references:
 - https://github.com/SigmaHQ/sigma/issues/1009
 author: Nikita Nazarov, oscd.community
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

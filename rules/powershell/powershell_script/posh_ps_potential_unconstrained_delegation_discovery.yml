@@ -1,9 +1,10 @@
 title: Potential Unconstrained Delegation Discovery Via Get-ADComputer - ScriptBlock
 id: cdfa73b6-3c9d-4bb8-97f8-ddbd8921f5c5
 status: experimental
-description: '[Source File: posh_ps_potential_unconstrained_delegation_discovery.yml]
-  Detects the use of the "Get-ADComputer" cmdlet in order to identify systems which
-  are configured for unconstrained delegation.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_potential_unconstrained_delegation_discovery.yml]
+  [Source File: posh_ps_potential_unconstrained_delegation_discovery.yml] Detects
+  the use of the "Get-ADComputer" cmdlet in order to identify systems which are configured
+  for unconstrained delegation.'
 references:
 - https://pentestlab.blog/2022/03/21/unconstrained-delegation/
 - https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adcomputer?view=windowsserver2022-ps
@@ -32,5 +33,3 @@ detection:
 falsepositives:
 - Legitimate use of the library for administrative activity
 level: medium
-
-# Force Redeploy 2026-01-30

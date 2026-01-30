@@ -1,7 +1,8 @@
 title: Potential Persistence Via PowerShell User Profile Using Add-Content
 id: 05b3e303-faf0-4f4a-9b30-46cc13e69152
 status: test
-description: '[Source File: posh_ps_user_profile_tampering.yml] Detects calls to "Add-Content"
+description: '[Source: rules/powershell/powershell_script/posh_ps_user_profile_tampering.yml]
+  [Source File: posh_ps_user_profile_tampering.yml] Detects calls to "Add-Content"
   cmdlet in order to modify the content of the user profile and potentially adding
   suspicious commands for persistence'
 references:
@@ -35,5 +36,3 @@ falsepositives:
 - Legitimate administration and tuning scripts that aim to add functionality to a
   user PowerShell session
 level: medium
-
-# Force Redeploy 2026-01-30

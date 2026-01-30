@@ -4,10 +4,11 @@ related:
 - id: 43d91656-a9b2-4541-b7e2-6a9bd3a13f4e
   type: similar
 status: test
-description: '[Source File: posh_ps_dsinternals_cmdlets.yml] Detects execution and
-  usage of the DSInternals PowerShell module. Which can be used to perform what might
-  be considered as suspicious activity such as dumping DPAPI backup keys or manipulating
-  NTDS.DIT files.
+description: '[Source: rules/powershell/powershell_script/posh_ps_dsinternals_cmdlets.yml]
+  [Source File: posh_ps_dsinternals_cmdlets.yml] Detects execution and usage of the
+  DSInternals PowerShell module. Which can be used to perform what might be considered
+  as suspicious activity such as dumping DPAPI backup keys or manipulating NTDS.DIT
+  files.
 
   The DSInternals PowerShell Module exposes several internal features of Active Directory
   and Azure Active Directory. These include FIDO2 and NGC key auditing, offline ntds.dit
@@ -96,5 +97,3 @@ detection:
 falsepositives:
 - Legitimate usage of DSInternals for administration or audit purpose.
 level: high
-
-# Force Redeploy 2026-01-30

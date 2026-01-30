@@ -4,9 +4,10 @@ related:
 - id: 14c71865-6cd3-44ae-adaa-1db923fae5f2
   type: similar
 status: test
-description: '[Source File: posh_pc_tamper_windows_defender_set_mp.yml] Attempting
-  to disable scheduled scanning and other parts of Windows Defender ATP or set default
-  actions to allow.'
+description: '[Source: rules/powershell/powershell_classic/posh_pc_tamper_windows_defender_set_mp.yml]
+  [Source File: posh_pc_tamper_windows_defender_set_mp.yml] Attempting to disable
+  scheduled scanning and other parts of Windows Defender ATP or set default actions
+  to allow.'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1562.001/T1562.001.md
 author: frack113, Nasreddine Bencherchali (Nextron Systems)
@@ -82,5 +83,3 @@ falsepositives:
 - Legitimate PowerShell scripts that disable Windows Defender for troubleshooting
   purposes. Must be investigated.
 level: high
-
-# Force Redeploy 2026-01-30

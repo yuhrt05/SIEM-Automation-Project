@@ -6,7 +6,8 @@ related:
 - id: 9f7aa113-9da6-4a8d-907c-5f1a4b908299
   type: derived
 status: test
-description: '[Source File: posh_pm_syncappvpublishingserver_exe.yml] Detects SyncAppvPublishingServer
+description: '[Source: rules/powershell/powershell_module/posh_pm_syncappvpublishingserver_exe.yml]
+  [Source File: posh_pm_syncappvpublishingserver_exe.yml] Detects SyncAppvPublishingServer
   process execution which usually utilized by adversaries to bypass PowerShell execution
   restrictions.'
 references:
@@ -28,5 +29,3 @@ detection:
 falsepositives:
 - App-V clients
 level: medium
-
-# Force Redeploy 2026-01-30

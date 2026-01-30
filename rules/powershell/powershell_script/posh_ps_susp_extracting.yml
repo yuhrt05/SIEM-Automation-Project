@@ -1,8 +1,9 @@
 title: Extracting Information with PowerShell
 id: bd5971a7-626d-46ab-8176-ed643f694f68
 status: test
-description: '[Source File: posh_ps_susp_extracting.yml] Adversaries may search local
-  file systems and remote file shares for files containing insecurely stored credentials.
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_extracting.yml]
+  [Source File: posh_ps_susp_extracting.yml] Adversaries may search local file systems
+  and remote file shares for files containing insecurely stored credentials.
 
   These can be files created by users to store their own credentials, shared credential
   stores for a group of individuals,
@@ -34,5 +35,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

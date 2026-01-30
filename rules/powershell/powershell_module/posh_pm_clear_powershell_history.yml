@@ -4,8 +4,9 @@ related:
 - id: dfba4ce1-e0ea-495f-986e-97140f31af2d
   type: derived
 status: test
-description: '[Source File: posh_pm_clear_powershell_history.yml] Detects keywords
-  that could indicate clearing PowerShell history'
+description: '[Source: rules/powershell/powershell_module/posh_pm_clear_powershell_history.yml]
+  [Source File: posh_pm_clear_powershell_history.yml] Detects keywords that could
+  indicate clearing PowerShell history'
 references:
 - https://gist.github.com/hook-s3c/7363a856c3cdbadeb71085147f042c1a
 author: Ilyas Ochkov, Jonhnathan Ribeiro, Daniil Yugoslavskiy, oscd.community
@@ -40,5 +41,3 @@ detection:
 falsepositives:
 - Legitimate PowerShell scripts
 level: medium
-
-# Force Redeploy 2026-01-30

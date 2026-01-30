@@ -1,9 +1,10 @@
 title: Winlogon Helper DLL
 id: 851c506b-6b7c-4ce2-8802-c703009d03c0
 status: test
-description: '[Source File: posh_ps_winlogon_helper_dll.yml] Winlogon.exe is a Windows
-  component responsible for actions at logon/logoff as well as the secure attention
-  sequence (SAS) triggered by Ctrl-Alt-Delete.
+description: '[Source: rules/powershell/powershell_script/posh_ps_winlogon_helper_dll.yml]
+  [Source File: posh_ps_winlogon_helper_dll.yml] Winlogon.exe is a Windows component
+  responsible for actions at logon/logoff as well as the secure attention sequence
+  (SAS) triggered by Ctrl-Alt-Delete.
 
   Registry entries in HKLM\Software[Wow6432Node]Microsoft\Windows NT\CurrentVersion\Winlogon\
   and HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\ are
@@ -38,5 +39,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

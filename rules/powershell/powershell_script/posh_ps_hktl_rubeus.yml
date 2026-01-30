@@ -4,8 +4,9 @@ related:
 - id: 7ec2c172-dceb-4c10-92c9-87c1881b7e18
   type: similar
 status: test
-description: '[Source File: posh_ps_hktl_rubeus.yml] Detects the execution of the
-  hacktool Rubeus using specific command line flags'
+description: '[Source: rules/powershell/powershell_script/posh_ps_hktl_rubeus.yml]
+  [Source File: posh_ps_hktl_rubeus.yml] Detects the execution of the hacktool Rubeus
+  using specific command line flags'
 references:
 - https://blog.harmj0y.net/redteaming/from-kekeo-to-rubeus
 - https://m0chan.github.io/2019/07/31/How-To-Attack-Kerberos-101.html
@@ -45,5 +46,3 @@ detection:
 falsepositives:
 - Unlikely
 level: high
-
-# Force Redeploy 2026-01-30

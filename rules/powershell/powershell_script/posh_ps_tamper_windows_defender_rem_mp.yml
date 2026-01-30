@@ -4,8 +4,9 @@ related:
 - id: 07e3cb2c-0608-410d-be4b-1511cb1a0448
   type: similar
 status: test
-description: '[Source File: posh_ps_tamper_windows_defender_rem_mp.yml] Detects attempts
-  to remove Windows Defender configuration using the ''MpPreference'' cmdlet'
+description: '[Source: rules/powershell/powershell_script/posh_ps_tamper_windows_defender_rem_mp.yml]
+  [Source File: posh_ps_tamper_windows_defender_rem_mp.yml] Detects attempts to remove
+  Windows Defender configuration using the ''MpPreference'' cmdlet'
 references:
 - https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/windows-10-controlled-folder-access-event-search/ba-p/2326088
 author: Nasreddine Bencherchali (Nextron Systems)
@@ -30,5 +31,3 @@ detection:
 falsepositives:
 - Legitimate PowerShell scripts
 level: high
-
-# Force Redeploy 2026-01-30

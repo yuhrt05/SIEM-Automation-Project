@@ -1,8 +1,9 @@
 title: Malicious Nishang PowerShell Commandlets
 id: f772cee9-b7c2-4cb2-8f07-49870adc02e0
 status: test
-description: '[Source File: posh_ps_nishang_malicious_commandlets.yml] Detects Commandlet
-  names and arguments from the Nishang exploitation framework'
+description: '[Source: rules/powershell/powershell_script/posh_ps_nishang_malicious_commandlets.yml]
+  [Source File: posh_ps_nishang_malicious_commandlets.yml] Detects Commandlet names
+  and arguments from the Nishang exploitation framework'
 references:
 - https://github.com/samratashok/nishang
 author: Alec Costello
@@ -94,5 +95,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

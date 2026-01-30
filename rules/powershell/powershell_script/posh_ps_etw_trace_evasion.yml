@@ -4,8 +4,9 @@ related:
 - id: a238b5d0-ce2d-4414-a676-7a531b3d13d6
   type: derived
 status: test
-description: '[Source File: posh_ps_etw_trace_evasion.yml] Detects usage of powershell
-  cmdlets to disable or remove ETW trace sessions'
+description: '[Source: rules/powershell/powershell_script/posh_ps_etw_trace_evasion.yml]
+  [Source File: posh_ps_etw_trace_evasion.yml] Detects usage of powershell cmdlets
+  to disable or remove ETW trace sessions'
 references:
 - https://medium.com/palantir/tampering-with-windows-event-tracing-background-offense-and-defense-4be7ac62ac63
 author: Nasreddine Bencherchali (Nextron Systems)
@@ -31,5 +32,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

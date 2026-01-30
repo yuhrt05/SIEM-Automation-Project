@@ -4,8 +4,9 @@ related:
 - id: e54f5149-6ba3-49cf-b153-070d24679126
   type: derived
 status: test
-description: '[Source File: posh_pm_invoke_obfuscation_via_var.yml] Detects Obfuscated
-  Powershell via VAR++ LAUNCHER'
+description: '[Source: rules/powershell/powershell_module/posh_pm_invoke_obfuscation_via_var.yml]
+  [Source File: posh_pm_invoke_obfuscation_via_var.yml] Detects Obfuscated Powershell
+  via VAR++ LAUNCHER'
 references:
 - https://github.com/SigmaHQ/sigma/issues/1009
 author: Timur Zinniatullin, oscd.community
@@ -27,5 +28,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

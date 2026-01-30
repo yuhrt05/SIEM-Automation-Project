@@ -1,8 +1,9 @@
 title: Security Software Discovery Via Powershell Script
 id: 904e8e61-8edf-4350-b59c-b905fc8e810c
 status: test
-description: '[Source File: posh_ps_get_process_security_software_discovery.yml] Detects
-  calls to "get-process" where the output is piped to a "where-object" filter to search
+description: '[Source: rules/powershell/powershell_script/posh_ps_get_process_security_software_discovery.yml]
+  [Source File: posh_ps_get_process_security_software_discovery.yml] Detects calls
+  to "get-process" where the output is piped to a "where-object" filter to search
   for security solution processes.
 
   Adversaries may attempt to get a listing of security software, configurations, defensive
@@ -55,5 +56,3 @@ falsepositives:
   the search. Change into regex or a more accurate string to avoid heavy resource
   consumption if experienced
 level: medium
-
-# Force Redeploy 2026-01-30

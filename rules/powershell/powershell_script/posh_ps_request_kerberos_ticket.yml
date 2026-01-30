@@ -4,8 +4,9 @@ related:
 - id: caa9a802-8bd8-4b9e-a5cd-4d6221670219
   type: similar
 status: test
-description: '[Source File: posh_ps_request_kerberos_ticket.yml] Detects PowerShell
-  scripts that utilize native PowerShell Identity modules to request Kerberos tickets.
+description: '[Source: rules/powershell/powershell_script/posh_ps_request_kerberos_ticket.yml]
+  [Source File: posh_ps_request_kerberos_ticket.yml] Detects PowerShell scripts that
+  utilize native PowerShell Identity modules to request Kerberos tickets.
 
   This behavior is typically seen during a Kerberos or silver ticket attack. A successful
   execution will output the SPNs for the endpoint in question.
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

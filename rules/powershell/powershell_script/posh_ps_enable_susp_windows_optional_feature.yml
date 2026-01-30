@@ -4,9 +4,10 @@ related:
 - id: c740d4cf-a1e9-41de-bb16-8a46a4f57918
   type: similar
 status: test
-description: '[Source File: posh_ps_enable_susp_windows_optional_feature.yml] Detects
-  usage of the built-in PowerShell cmdlet "Enable-WindowsOptionalFeature" used as
-  a Deployment Image Servicing and Management tool.
+description: '[Source: rules/powershell/powershell_script/posh_ps_enable_susp_windows_optional_feature.yml]
+  [Source File: posh_ps_enable_susp_windows_optional_feature.yml] Detects usage of
+  the built-in PowerShell cmdlet "Enable-WindowsOptionalFeature" used as a Deployment
+  Image Servicing and Management tool.
 
   Similar to DISM.exe, this cmdlet is used to enumerate, install, uninstall, configure,
   and update features and packages in Windows images
@@ -43,5 +44,3 @@ detection:
 falsepositives:
 - Legitimate usage of the features listed in the rule.
 level: medium
-
-# Force Redeploy 2026-01-30

@@ -4,9 +4,9 @@ related:
 - id: bf7286e7-c0be-460b-a7e8-5b2e07ecc2f2
   type: derived
 status: test
-description: '[Source File: posh_pc_powercat.yml] Adversaries may use a non-application
-  layer protocol for communication between host and C2 server or among infected hosts
-  within a network'
+description: '[Source: rules/powershell/powershell_classic/posh_pc_powercat.yml] [Source
+  File: posh_pc_powercat.yml] Adversaries may use a non-application layer protocol
+  for communication between host and C2 server or among infected hosts within a network'
 references:
 - https://nmap.org/ncat/
 - https://github.com/besimorhino/powercat
@@ -29,5 +29,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

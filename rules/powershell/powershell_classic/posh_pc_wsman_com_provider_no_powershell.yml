@@ -1,8 +1,9 @@
 title: Suspicious Non PowerShell WSMAN COM Provider
 id: df9a0e0e-fedb-4d6c-8668-d765dfc92aa7
 status: test
-description: '[Source File: posh_pc_wsman_com_provider_no_powershell.yml] Detects
-  suspicious use of the WSMAN provider without PowerShell.exe as the host application.'
+description: '[Source: rules/powershell/powershell_classic/posh_pc_wsman_com_provider_no_powershell.yml]
+  [Source File: posh_pc_wsman_com_provider_no_powershell.yml] Detects suspicious use
+  of the WSMAN provider without PowerShell.exe as the host application.'
 references:
 - https://twitter.com/chadtilbury/status/1275851297770610688
 - https://bohops.com/2020/05/12/ws-management-com-another-approach-for-winrm-lateral-movement/
@@ -36,5 +37,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

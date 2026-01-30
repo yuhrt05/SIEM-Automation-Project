@@ -6,9 +6,10 @@ related:
 - id: 9e620995-f2d8-4630-8430-4afd89f77604
   type: similar
 status: test
-description: '[Source File: posh_pm_active_directory_module_dll_import.yml] Detects
-  usage of the "Import-Module" cmdlet to load the "Microsoft.ActiveDirectory.Management.dl"
-  DLL. Which is often used by attackers to perform AD enumeration.'
+description: '[Source: rules/powershell/powershell_module/posh_pm_active_directory_module_dll_import.yml]
+  [Source File: posh_pm_active_directory_module_dll_import.yml] Detects usage of the
+  "Import-Module" cmdlet to load the "Microsoft.ActiveDirectory.Management.dl" DLL.
+  Which is often used by attackers to perform AD enumeration.'
 references:
 - https://github.com/samratashok/ADModule
 - https://twitter.com/cyb3rops/status/1617108657166061568?s=20
@@ -34,5 +35,3 @@ detection:
 falsepositives:
 - Legitimate use of the library for administrative activity
 level: medium
-
-# Force Redeploy 2026-01-30

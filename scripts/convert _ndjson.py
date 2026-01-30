@@ -3,7 +3,7 @@ import sys
 import io
 import os
 import shutil
-import yaml # Cần cài đặt: pip install pyyaml
+import yaml
 
 # Đảm bảo in tiếng Việt không lỗi
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -23,21 +23,27 @@ def get_sigma_path():
     return "sigma"
 
 def inject_metadata():
-    """Đọc từng file yaml và chèn tên file vào description để truy vết"""
-    print("[*] Đang thực hiện mapping tên file vào Metadata...")
+    """Đọc từng file yaml và chèn đường dẫn đầy đủ vào description"""
+    print("[*] Đang thực hiện mapping đường dẫn file vào Metadata...")
     for root, _, files in os.walk(RULES_INPUT):
         for file in files:
             if file.endswith(('.yml', '.yaml')):
                 file_path = os.path.join(root, file)
+                
+                # Tạo đường dẫn tương đối (Ví dụ: rules/powershell_script/posh_ps_...)
+                relative_path = os.path.relpath(file_path, start='.')
+                
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = yaml.safe_load(f)
                     
-                    # Chèn tên file vào đầu phần description
+                    # Chèn Full Path vào đầu phần description để dễ phân biệt ps/pm/classic
                     original_desc = data.get('description', '')
-                    file_tag = f"[Source File: {file}]"
+                    # Ghi rõ Source để script AlertMonitor dễ bốc tách
+                    file_tag = f"[Source: {relative_path.replace(os.sep, '/')}]"
                     
                     if file_tag not in original_desc:
+                        # Ghi đè metadata mới vào description
                         data['description'] = f"{file_tag} {original_desc}"
                         
                         with open(file_path, 'w', encoding='utf-8') as f:
@@ -48,11 +54,10 @@ def inject_metadata():
 def fast_deploy():
     sigma_cmd = get_sigma_path()
     
-    # Bước 0: Inject tên file vào nội dung Rule trước khi convert
+    # Bước 0: Inject đường dẫn vào nội dung Rule
     inject_metadata()
     
-    # Bước 1: Convert rules Sigma sang NDJSON
-    # Sử dụng siem_rule_ndjson để tạo định dạng chuẩn cho Kibana
+    # Bước 1: Convert rules Sigma sang NDJSON cho SIEM
     cmd = f'{sigma_cmd} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
     
     print(f"[*] Đang sử dụng Sigma CLI: {sigma_cmd}")
@@ -62,10 +67,9 @@ def fast_deploy():
     
     if result.returncode == 0:
         print(f"✅ THÀNH CÔNG! File định danh đã được tạo tại: {NDJSON_OUTPUT}")
-        print(f"[*] Giờ đây mỗi Rule trong NDJSON đều đã chứa thông tin 'Source File' bên trong mô tả.")
+        print(f"[*] Metadata đường dẫn đã được nhúng vào từng Rule.")
     else:
         print(f"[-] Lỗi Sigma CLI: {result.stderr}")
 
 if __name__ == "__main__":
-    # Script này giờ chỉ tạo file, không đẩy lên SIEM
     fast_deploy()

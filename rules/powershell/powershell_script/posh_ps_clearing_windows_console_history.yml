@@ -1,9 +1,10 @@
 title: Clearing Windows Console History
 id: bde47d4b-9987-405c-94c7-b080410e8ea7
 status: test
-description: '[Source File: posh_ps_clearing_windows_console_history.yml] Identifies
-  when a user attempts to clear console history. An adversary may clear the command
-  history of a compromised account to conceal the actions undertaken during an intrusion.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_clearing_windows_console_history.yml]
+  [Source File: posh_ps_clearing_windows_console_history.yml] Identifies when a user
+  attempts to clear console history. An adversary may clear the command history of
+  a compromised account to conceal the actions undertaken during an intrusion.'
 references:
 - https://stefanos.cloud/blog/kb/how-to-clear-the-powershell-command-history/
 - https://www.shellhacks.com/clear-history-powershell/
@@ -34,5 +35,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

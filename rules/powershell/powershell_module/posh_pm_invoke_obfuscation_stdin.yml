@@ -4,8 +4,9 @@ related:
 - id: 779c8c12-0eb1-11eb-adc1-0242ac120002
   type: derived
 status: test
-description: '[Source File: posh_pm_invoke_obfuscation_stdin.yml] Detects Obfuscated
-  use of stdin to execute PowerShell'
+description: '[Source: rules/powershell/powershell_module/posh_pm_invoke_obfuscation_stdin.yml]
+  [Source File: posh_pm_invoke_obfuscation_stdin.yml] Detects Obfuscated use of stdin
+  to execute PowerShell'
 references:
 - https://github.com/SigmaHQ/sigma/issues/1009
 author: Jonathan Cheong, oscd.community
@@ -27,5 +28,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

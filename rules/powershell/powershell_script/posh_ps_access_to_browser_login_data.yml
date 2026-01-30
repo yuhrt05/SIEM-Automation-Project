@@ -6,9 +6,9 @@ related:
 - id: 47147b5b-9e17-4d76-b8d2-7bac24c5ce1b
   type: similar
 status: test
-description: '[Source File: posh_ps_access_to_browser_login_data.yml] Adversaries
-  may acquire credentials from web browsers by reading files specific to the target
-  browser.
+description: '[Source: rules/powershell/powershell_script/posh_ps_access_to_browser_login_data.yml]
+  [Source File: posh_ps_access_to_browser_login_data.yml] Adversaries may acquire
+  credentials from web browsers by reading files specific to the target browser.
 
   Web browsers commonly save credentials such as website usernames and passwords so
   that they do not need to be entered manually in the future.
@@ -44,5 +44,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

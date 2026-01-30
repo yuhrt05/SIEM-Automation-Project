@@ -1,9 +1,10 @@
 title: Suspicious Get-ADDBAccount Usage
 id: b140afd9-474b-4072-958e-2ebb435abd68
 status: test
-description: '[Source File: posh_pm_get_addbaccount.yml] Detects suspicious invocation
-  of the Get-ADDBAccount script that reads from a ntds.dit file and may be used to
-  get access to credentials without using any credential dumpers'
+description: '[Source: rules/powershell/powershell_module/posh_pm_get_addbaccount.yml]
+  [Source File: posh_pm_get_addbaccount.yml] Detects suspicious invocation of the
+  Get-ADDBAccount script that reads from a ntds.dit file and may be used to get access
+  to credentials without using any credential dumpers'
 references:
 - https://www.n00py.io/2022/03/manipulating-user-passwords-without-mimikatz/
 - https://github.com/MichaelGrafnetter/DSInternals/blob/7ba59c12ee9a1cb430d7dc186a3366842dd612c8/Documentation/PowerShell/Get-ADDBAccount.md
@@ -26,5 +27,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

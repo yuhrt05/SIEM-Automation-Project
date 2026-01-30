@@ -1,8 +1,9 @@
 title: Powershell Store File In Alternate Data Stream
 id: a699b30e-d010-46c8-bbd1-ee2e26765fe9
 status: test
-description: '[Source File: posh_ps_store_file_in_alternate_data_stream.yml] Storing
-  files in Alternate Data Stream (ADS) similar to Astaroth malware.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_store_file_in_alternate_data_stream.yml]
+  [Source File: posh_ps_store_file_in_alternate_data_stream.yml] Storing files in
+  Alternate Data Stream (ADS) similar to Astaroth malware.'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1564.004/T1564.004.md
 author: frack113
@@ -26,5 +27,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

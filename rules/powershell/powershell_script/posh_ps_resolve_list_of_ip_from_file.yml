@@ -1,9 +1,9 @@
 title: PowerShell Script With File Hostname Resolving Capabilities
 id: fbc5e92f-3044-4e73-a5c6-1c4359b539de
 status: test
-description: '[Source File: posh_ps_resolve_list_of_ip_from_file.yml] Detects PowerShell
-  scripts that have capabilities to read files, loop through them and resolve DNS
-  host entries.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_resolve_list_of_ip_from_file.yml]
+  [Source File: posh_ps_resolve_list_of_ip_from_file.yml] Detects PowerShell scripts
+  that have capabilities to read files, loop through them and resolve DNS host entries.'
 references:
 - https://www.fortypoundhead.com/showcontent.asp?artid=24022
 - https://labs.withsecure.com/publications/fin7-target-veeam-servers
@@ -28,5 +28,3 @@ falsepositives:
 - The same functionality can be implemented by admin scripts, correlate with name
   and creator
 level: medium
-
-# Force Redeploy 2026-01-30

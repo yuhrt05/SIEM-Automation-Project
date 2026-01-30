@@ -1,9 +1,9 @@
 title: Disable Powershell Command History
 id: 602f5669-6927-4688-84db-0d4b7afb2150
 status: test
-description: '[Source File: posh_ps_disable_psreadline_command_history.yml] Detects
-  scripts or commands that disabled the Powershell command history by removing psreadline
-  module'
+description: '[Source: rules/powershell/powershell_script/posh_ps_disable_psreadline_command_history.yml]
+  [Source File: posh_ps_disable_psreadline_command_history.yml] Detects scripts or
+  commands that disabled the Powershell command history by removing psreadline module'
 references:
 - https://twitter.com/DissectMalware/status/1062879286749773824
 author: Ali Alwashali
@@ -24,5 +24,3 @@ detection:
 falsepositives:
 - Legitimate script that disables the command history
 level: high
-
-# Force Redeploy 2026-01-30

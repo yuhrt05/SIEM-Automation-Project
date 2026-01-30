@@ -1,7 +1,8 @@
 title: PowerShell ShellCode
 id: 16b37b70-6fcf-4814-a092-c36bd3aafcbd
 status: test
-description: '[Source File: posh_ps_shellcode_b64.yml] Detects Base64 encoded Shellcode'
+description: '[Source: rules/powershell/powershell_script/posh_ps_shellcode_b64.yml]
+  [Source File: posh_ps_shellcode_b64.yml] Detects Base64 encoded Shellcode'
 references:
 - https://twitter.com/cyb3rops/status/1063072865992523776
 author: David Ledbetter (shellcode), Florian Roth (Nextron Systems)
@@ -26,5 +27,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

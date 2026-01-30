@@ -1,8 +1,9 @@
 title: Potential In-Memory Execution Using Reflection.Assembly
 id: ddcd88cb-7f62-4ce5-86f9-1704190feb0a
 status: test
-description: '[Source File: posh_ps_dotnet_assembly_from_file.yml] Detects usage of
-  "Reflection.Assembly" load functions to dynamically load assemblies in memory'
+description: '[Source: rules/powershell/powershell_script/posh_ps_dotnet_assembly_from_file.yml]
+  [Source File: posh_ps_dotnet_assembly_from_file.yml] Detects usage of "Reflection.Assembly"
+  load functions to dynamically load assemblies in memory'
 references:
 - https://speakerdeck.com/heirhabarov/hunting-for-powershell-abuse?slide=50
 author: frack113
@@ -21,5 +22,3 @@ detection:
 falsepositives:
 - Legitimate use of the library
 level: medium
-
-# Force Redeploy 2026-01-30

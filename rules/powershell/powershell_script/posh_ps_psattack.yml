@@ -1,8 +1,8 @@
 title: PowerShell PSAttack
 id: b7ec41a4-042c-4f31-a5db-d0fcde9fa5c5
 status: test
-description: '[Source File: posh_ps_psattack.yml] Detects the use of PSAttack PowerShell
-  hack tool'
+description: '[Source: rules/powershell/powershell_script/posh_ps_psattack.yml] [Source
+  File: posh_ps_psattack.yml] Detects the use of PSAttack PowerShell hack tool'
 references:
 - https://adsecurity.org/?p=2921
 author: Sean Metcalf (source), Florian Roth (Nextron Systems)
@@ -22,5 +22,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

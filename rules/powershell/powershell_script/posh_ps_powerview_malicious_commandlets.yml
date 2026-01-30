@@ -4,8 +4,9 @@ related:
 - id: b2317cfa-4a47-4ead-b3ff-297438c0bc2d
   type: similar
 status: test
-description: '[Source File: posh_ps_powerview_malicious_commandlets.yml] Detects Cmdlet
-  names from PowerView of the PowerSploit exploitation framework.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_powerview_malicious_commandlets.yml]
+  [Source File: posh_ps_powerview_malicious_commandlets.yml] Detects Cmdlet names
+  from PowerView of the PowerSploit exploitation framework.'
 references:
 - https://powersploit.readthedocs.io/en/stable/Recon/README
 - https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon
@@ -80,5 +81,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

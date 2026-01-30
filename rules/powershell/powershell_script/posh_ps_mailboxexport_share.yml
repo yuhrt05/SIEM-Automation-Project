@@ -4,9 +4,9 @@ related:
 - id: 889719ef-dd62-43df-86c3-768fb08dc7c0
   type: derived
 status: test
-description: '[Source File: posh_ps_mailboxexport_share.yml] Detects usage of the
-  powerShell New-MailboxExportRequest Cmdlet to exports a mailbox to a remote or local
-  share, as used in ProxyShell exploitations'
+description: '[Source: rules/powershell/powershell_script/posh_ps_mailboxexport_share.yml]
+  [Source File: posh_ps_mailboxexport_share.yml] Detects usage of the powerShell New-MailboxExportRequest
+  Cmdlet to exports a mailbox to a remote or local share, as used in ProxyShell exploitations'
 references:
 - https://youtu.be/5mqid-7zp8k?t=2481
 - https://blog.orange.tw/2021/08/proxylogon-a-new-attack-surface-on-ms-exchange-part-1.html
@@ -30,5 +30,3 @@ detection:
 falsepositives:
 - Unknown
 level: critical
-
-# Force Redeploy 2026-01-30

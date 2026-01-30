@@ -1,8 +1,9 @@
 title: Powershell Local Email Collection
 id: 2837e152-93c8-43d2-85ba-c3cd3c2ae614
 status: test
-description: '[Source File: posh_ps_susp_mail_acces.yml] Adversaries may target user
-  email on local systems to collect sensitive information.
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_mail_acces.yml]
+  [Source File: posh_ps_susp_mail_acces.yml] Adversaries may target user email on
+  local systems to collect sensitive information.
 
   Files containing email data can be acquired from a users local system, such as Outlook
   storage or cache files.
@@ -31,5 +32,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

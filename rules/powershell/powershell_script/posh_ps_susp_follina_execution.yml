@@ -1,9 +1,10 @@
 title: Troubleshooting Pack Cmdlet Execution
 id: 03409c93-a7c7-49ba-9a4c-a00badf2a153
 status: test
-description: '[Source File: posh_ps_susp_follina_execution.yml] Detects execution
-  of "TroubleshootingPack" cmdlets to leverage CVE-2022-30190 or action similar to
-  "msdt" lolbin (as described in LOLBAS)'
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_follina_execution.yml]
+  [Source File: posh_ps_susp_follina_execution.yml] Detects execution of "TroubleshootingPack"
+  cmdlets to leverage CVE-2022-30190 or action similar to "msdt" lolbin (as described
+  in LOLBAS)'
 references:
 - https://twitter.com/nas_bench/status/1537919885031772161
 - https://lolbas-project.github.io/lolbas/Binaries/Msdt/
@@ -27,5 +28,3 @@ detection:
 falsepositives:
 - Legitimate usage of "TroubleshootingPack" cmdlet for troubleshooting purposes
 level: medium
-
-# Force Redeploy 2026-01-30

@@ -6,9 +6,10 @@ related:
 - id: 7f4c43f9-b1a5-4c7d-b24a-b41bf3a3ebf2
   type: similar
 status: experimental
-description: '[Source File: posh_ps_vbscript_registry_modification.yml] Detects attempts
-  to modify the registry using VBScript''s CreateObject("Wscript.shell") and RegWrite
-  methods embedded within PowerShell scripts or commands.
+description: '[Source: rules/powershell/powershell_script/posh_ps_vbscript_registry_modification.yml]
+  [Source File: posh_ps_vbscript_registry_modification.yml] Detects attempts to modify
+  the registry using VBScript''s CreateObject("Wscript.shell") and RegWrite methods
+  embedded within PowerShell scripts or commands.
 
   Threat actors commonly embed VBScript code within PowerShell to perform registry
   modifications, attempting to evade detection that monitors for direct registry access
@@ -44,5 +45,3 @@ detection:
 falsepositives:
 - Some legitimate admin or install scripts may use these processes for registry modifications.
 level: medium
-
-# Force Redeploy 2026-01-30

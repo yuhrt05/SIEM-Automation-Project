@@ -4,8 +4,9 @@ related:
 - id: 73e733cc-1ace-3212-a107-ff2523cc9fc3
   type: derived
 status: test
-description: '[Source File: posh_pm_bad_opsec_artifacts.yml] focuses on trivial artifacts
-  observed in variants of prevalent offensive ps1 payloads, including
+description: '[Source: rules/powershell/powershell_module/posh_pm_bad_opsec_artifacts.yml]
+  [Source File: posh_pm_bad_opsec_artifacts.yml] focuses on trivial artifacts observed
+  in variants of prevalent offensive ps1 payloads, including
 
   Cobalt Strike Beacon, PoshC2, Powerview, Letmein, Empire, Powersploit, and other
   attack payloads
@@ -41,5 +42,3 @@ falsepositives:
 - Moderate-to-low; Despite the shorter length/lower entropy for some of these, because
   of high specificity, fp appears to be fairly limited in many environments.
 level: critical
-
-# Force Redeploy 2026-01-30

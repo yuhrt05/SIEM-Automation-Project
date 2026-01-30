@@ -4,8 +4,9 @@ related:
 - id: ada4b0c4-758b-46ac-9033-9004613a150d
   type: similar
 status: test
-description: '[Source File: posh_ps_modify_group_policy_settings.yml] Detect malicious
-  GPO modifications can be used to implement many other malicious behaviors.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_modify_group_policy_settings.yml]
+  [Source File: posh_ps_modify_group_policy_settings.yml] Detect malicious GPO modifications
+  can be used to implement many other malicious behaviors.'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/40b77d63808dd4f4eafb83949805636735a1fd15/atomics/T1484.001/T1484.001.md
 author: frack113
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Legitimate use
 level: medium
-
-# Force Redeploy 2026-01-30

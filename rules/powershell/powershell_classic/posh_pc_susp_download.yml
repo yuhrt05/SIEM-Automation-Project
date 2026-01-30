@@ -4,8 +4,9 @@ related:
 - id: 65531a81-a694-4e31-ae04-f8ba5bc33759
   type: derived
 status: test
-description: '[Source File: posh_pc_susp_download.yml] Detects suspicious PowerShell
-  download command'
+description: '[Source: rules/powershell/powershell_classic/posh_pc_susp_download.yml]
+  [Source File: posh_pc_susp_download.yml] Detects suspicious PowerShell download
+  command'
 references:
 - https://www.trendmicro.com/en_us/research/22/j/lv-ransomware-exploits-proxyshell-in-attack.html
 author: Florian Roth (Nextron Systems)
@@ -28,5 +29,3 @@ detection:
 falsepositives:
 - PowerShell scripts that download content from the Internet
 level: medium
-
-# Force Redeploy 2026-01-30

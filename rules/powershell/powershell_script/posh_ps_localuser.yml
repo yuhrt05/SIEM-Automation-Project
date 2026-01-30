@@ -1,8 +1,9 @@
 title: Powershell LocalAccount Manipulation
 id: 4fdc44df-bfe9-4fcc-b041-68f5a2d3031c
 status: test
-description: '[Source File: posh_ps_localuser.yml] Adversaries may manipulate accounts
-  to maintain access to victim systems.
+description: '[Source: rules/powershell/powershell_script/posh_ps_localuser.yml] [Source
+  File: posh_ps_localuser.yml] Adversaries may manipulate accounts to maintain access
+  to victim systems.
 
   Account manipulation may consist of any action that preserves adversary access to
   a compromised account, such as modifying credentials or permission groups
@@ -35,5 +36,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

@@ -1,8 +1,9 @@
 title: Potential Data Exfiltration Via Audio File
 id: e4f93c99-396f-47c8-bb0f-201b1fa69034
 status: test
-description: '[Source File: posh_ps_audio_exfiltration.yml] Detects potential exfiltration
-  attempt via audio file using PowerShell'
+description: '[Source: rules/powershell/powershell_script/posh_ps_audio_exfiltration.yml]
+  [Source File: posh_ps_audio_exfiltration.yml] Detects potential exfiltration attempt
+  via audio file using PowerShell'
 references:
 - https://github.com/gtworek/PSBits/blob/e97cbbb173b31cbc4d37244d3412de0a114dacfb/NoDLP/bin2wav.ps1
 author: Nasreddine Bencherchali (Nextron Systems)
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

@@ -1,7 +1,8 @@
 title: WMImplant Hack Tool
 id: 8028c2c3-e25a-46e3-827f-bbb5abf181d7
 status: test
-description: '[Source File: posh_ps_wmimplant.yml] Detects parameters used by WMImplant'
+description: '[Source: rules/powershell/powershell_script/posh_ps_wmimplant.yml] [Source
+  File: posh_ps_wmimplant.yml] Detects parameters used by WMImplant'
 references:
 - https://github.com/FortyNorthSecurity/WMImplant
 author: NVISO
@@ -40,5 +41,3 @@ detection:
 falsepositives:
 - Administrative scripts that use the same keywords.
 level: high
-
-# Force Redeploy 2026-01-30

@@ -4,9 +4,10 @@ related:
 - id: 514e4c3a-c77d-4cde-a00f-046425e2301e
   type: similar
 status: test
-description: '[Source File: posh_ps_using_set_service_to_hide_services.yml] Detects
-  usage of the "Set-Service" powershell cmdlet to configure a new SecurityDescriptor
-  that allows a service to be hidden from other utilities such as "sc.exe", "Get-Service"...etc.
+description: '[Source: rules/powershell/powershell_script/posh_ps_using_set_service_to_hide_services.yml]
+  [Source File: posh_ps_using_set_service_to_hide_services.yml] Detects usage of the
+  "Set-Service" powershell cmdlet to configure a new SecurityDescriptor that allows
+  a service to be hidden from other utilities such as "sc.exe", "Get-Service"...etc.
   (Works only in powershell 7)'
 references:
 - https://twitter.com/Alh4zr3d/status/1580925761996828672
@@ -35,5 +36,3 @@ falsepositives:
 - Rare intended use of hidden services
 - Rare FP could occur due to the non linearity of the ScriptBlockText log
 level: high
-
-# Force Redeploy 2026-01-30

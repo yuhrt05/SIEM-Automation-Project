@@ -4,7 +4,8 @@ related:
 - id: 114de787-4eb2-48cc-abdb-c0b449f93ea4
   type: similar
 status: test
-description: '[Source File: posh_ps_x509enrollment.yml] Detect use of X509Enrollment'
+description: '[Source: rules/powershell/powershell_script/posh_ps_x509enrollment.yml]
+  [Source File: posh_ps_x509enrollment.yml] Detect use of X509Enrollment'
 references:
 - https://speakerdeck.com/heirhabarov/hunting-for-powershell-abuse?slide=42
 - https://speakerdeck.com/heirhabarov/hunting-for-powershell-abuse?slide=41
@@ -27,5 +28,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

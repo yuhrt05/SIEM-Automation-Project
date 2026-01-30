@@ -1,8 +1,9 @@
 title: Powershell Execute Batch Script
 id: b5522a23-82da-44e5-9c8b-e10ed8955f88
 status: test
-description: '[Source File: posh_ps_susp_execute_batch_script.yml] Adversaries may
-  abuse the Windows command shell for execution.
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_execute_batch_script.yml]
+  [Source File: posh_ps_susp_execute_batch_script.yml] Adversaries may abuse the Windows
+  command shell for execution.
 
   The Windows command shell ([cmd](https://attack.mitre.org/software/S0106)) is the
   primary command prompt on Windows systems.
@@ -40,5 +41,3 @@ detection:
 falsepositives:
 - Legitimate administration script
 level: medium
-
-# Force Redeploy 2026-01-30

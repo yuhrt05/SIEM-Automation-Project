@@ -1,8 +1,9 @@
 title: Suspicious PowerShell WindowStyle Option
 id: 313fbb0a-a341-4682-848d-6d6f8c4fab7c
 status: test
-description: '[Source File: posh_ps_susp_windowstyle.yml] Adversaries may use hidden
-  windows to conceal malicious activity from the plain sight of users.
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_windowstyle.yml]
+  [Source File: posh_ps_susp_windowstyle.yml] Adversaries may use hidden windows to
+  conceal malicious activity from the plain sight of users.
 
   In some cases, windows that would typically be displayed when an application carries
   out an operation can be hidden
@@ -34,5 +35,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

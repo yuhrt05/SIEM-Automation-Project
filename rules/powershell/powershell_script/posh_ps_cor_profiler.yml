@@ -1,9 +1,10 @@
 title: Registry-Free Process Scope COR_PROFILER
 id: 23590215-4702-4a70-8805-8dc9e58314a2
 status: test
-description: '[Source File: posh_ps_cor_profiler.yml] Adversaries may leverage the
-  COR_PROFILER environment variable to hijack the execution flow of programs that
-  load the .NET CLR.
+description: '[Source: rules/powershell/powershell_script/posh_ps_cor_profiler.yml]
+  [Source File: posh_ps_cor_profiler.yml] Adversaries may leverage the COR_PROFILER
+  environment variable to hijack the execution flow of programs that load the .NET
+  CLR.
 
   The COR_PROFILER is a .NET Framework feature which allows developers to specify
   an unmanaged (or external of .NET) profiling DLL to be loaded into each .NET process
@@ -40,5 +41,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

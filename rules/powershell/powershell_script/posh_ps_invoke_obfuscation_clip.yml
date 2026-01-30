@@ -1,8 +1,9 @@
 title: Invoke-Obfuscation CLIP+ Launcher - PowerShell
 id: 73e67340-0d25-11eb-adc1-0242ac120002
 status: test
-description: '[Source File: posh_ps_invoke_obfuscation_clip.yml] Detects Obfuscated
-  use of Clip.exe to execute PowerShell'
+description: '[Source: rules/powershell/powershell_script/posh_ps_invoke_obfuscation_clip.yml]
+  [Source File: posh_ps_invoke_obfuscation_clip.yml] Detects Obfuscated use of Clip.exe
+  to execute PowerShell'
 references:
 - https://github.com/SigmaHQ/sigma/issues/1009
 author: Jonathan Cheong, oscd.community
@@ -24,5 +25,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

@@ -1,8 +1,9 @@
 title: Silence.EDA Detection
 id: 3ceb2083-a27f-449a-be33-14ec1b7cc973
 status: test
-description: '[Source File: posh_ps_apt_silence_eda.yml] Detects Silence EmpireDNSAgent
-  as described in the Group-IP report'
+description: '[Source: rules/powershell/powershell_script/posh_ps_apt_silence_eda.yml]
+  [Source File: posh_ps_apt_silence_eda.yml] Detects Silence EmpireDNSAgent as described
+  in the Group-IP report'
 references:
 - https://www.group-ib.com/resources/threat-research/silence_2.0.going_global.pdf
 author: Alina Stepchenkova, Group-IB, oscd.community
@@ -43,5 +44,3 @@ detection:
 falsepositives:
 - Unknown
 level: critical
-
-# Force Redeploy 2026-01-30

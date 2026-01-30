@@ -4,8 +4,9 @@ related:
 - id: d23f2ba5-9da0-4463-8908-8ee47f614bb9
   type: derived
 status: test
-description: '[Source File: posh_ps_sensitive_file_discovery.yml] Detect adversaries
-  enumerate sensitive files'
+description: '[Source: rules/powershell/powershell_script/posh_ps_sensitive_file_discovery.yml]
+  [Source File: posh_ps_sensitive_file_discovery.yml] Detect adversaries enumerate
+  sensitive files'
 references:
 - https://twitter.com/malmoeb/status/1570814999370801158
 author: frack113
@@ -34,5 +35,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

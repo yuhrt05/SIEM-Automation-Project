@@ -1,8 +1,9 @@
 title: PowerShell Called from an Executable Version Mismatch
 id: c70e019b-1479-4b65-b0cc-cd0c6093a599
 status: test
-description: '[Source File: posh_pc_exe_calling_ps.yml] Detects PowerShell called
-  from an executable by the version mismatch method'
+description: '[Source: rules/powershell/powershell_classic/posh_pc_exe_calling_ps.yml]
+  [Source File: posh_pc_exe_calling_ps.yml] Detects PowerShell called from an executable
+  by the version mismatch method'
 references:
 - https://adsecurity.org/?p=2921
 author: Sean Metcalf (source), Florian Roth (Nextron Systems)
@@ -27,5 +28,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

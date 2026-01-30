@@ -1,8 +1,9 @@
 title: Powershell XML Execute Command
 id: 6c6c6282-7671-4fe9-a0ce-a2dcebdc342b
 status: test
-description: '[Source File: posh_ps_xml_iex.yml] Adversaries may abuse PowerShell
-  commands and scripts for execution.
+description: '[Source: rules/powershell/powershell_script/posh_ps_xml_iex.yml] [Source
+  File: posh_ps_xml_iex.yml] Adversaries may abuse PowerShell commands and scripts
+  for execution.
 
   PowerShell is a powerful interactive command-line interface and scripting environment
   included in the Windows operating system. (Citation: TechNet PowerShell)
@@ -39,5 +40,3 @@ detection:
 falsepositives:
 - Legitimate administrative script
 level: medium
-
-# Force Redeploy 2026-01-30

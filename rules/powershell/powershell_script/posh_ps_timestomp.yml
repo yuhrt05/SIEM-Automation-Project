@@ -1,8 +1,9 @@
 title: Powershell Timestomp
 id: c6438007-e081-42ce-9483-b067fbef33c3
 status: test
-description: '[Source File: posh_ps_timestomp.yml] Adversaries may modify file time
-  attributes to hide new or changes to existing files.
+description: '[Source: rules/powershell/powershell_script/posh_ps_timestomp.yml] [Source
+  File: posh_ps_timestomp.yml] Adversaries may modify file time attributes to hide
+  new or changes to existing files.
 
   Timestomping is a technique that modifies the timestamps of a file (the modify,
   access, create, and change times), often to mimic files that are in the same folder.
@@ -34,5 +35,3 @@ detection:
 falsepositives:
 - Legitimate admin script
 level: medium
-
-# Force Redeploy 2026-01-30

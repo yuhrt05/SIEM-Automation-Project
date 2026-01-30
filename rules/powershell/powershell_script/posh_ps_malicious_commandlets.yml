@@ -10,8 +10,9 @@ related:
 - id: 83083ac6-1816-4e76-97d7-59af9a9ae46e
   type: obsolete
 status: test
-description: '[Source File: posh_ps_malicious_commandlets.yml] Detects Commandlet
-  names from well-known PowerShell exploitation frameworks'
+description: '[Source: rules/powershell/powershell_script/posh_ps_malicious_commandlets.yml]
+  [Source File: posh_ps_malicious_commandlets.yml] Detects Commandlet names from well-known
+  PowerShell exploitation frameworks'
 references:
 - https://adsecurity.org/?p=2921
 - https://github.com/S3cur3Th1sSh1t/PowerSharpPack/tree/master/PowerSharpBinaries
@@ -241,5 +242,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

@@ -1,8 +1,9 @@
 title: Malicious PowerShell Keywords
 id: f62176f3-8128-4faa-bf6c-83261322e5eb
 status: test
-description: '[Source File: posh_ps_malicious_keywords.yml] Detects keywords from
-  well-known PowerShell exploitation frameworks'
+description: '[Source: rules/powershell/powershell_script/posh_ps_malicious_keywords.yml]
+  [Source File: posh_ps_malicious_keywords.yml] Detects keywords from well-known PowerShell
+  exploitation frameworks'
 references:
 - https://adsecurity.org/?p=2921
 author: Sean Metcalf (source), Florian Roth (Nextron Systems)
@@ -42,5 +43,3 @@ falsepositives:
 - Depending on the scripts, this rule might require some initial tuning to fit the
   environment
 level: medium
-
-# Force Redeploy 2026-01-30

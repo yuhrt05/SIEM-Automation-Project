@@ -8,10 +8,11 @@ related:
 - id: 85a8e5ba-bd03-4bfb-bbfa-a4409a8f8b98
   type: similar
 status: test
-description: '[Source File: posh_ps_susp_zip_compress.yml] Detects PowerShell scripts
-  that make use of the "Compress-Archive" Cmdlet in order to compress folders and
-  files where the output is stored in a potentially suspicious location that is used
-  often by malware for exfiltration.
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_zip_compress.yml]
+  [Source File: posh_ps_susp_zip_compress.yml] Detects PowerShell scripts that make
+  use of the "Compress-Archive" Cmdlet in order to compress folders and files where
+  the output is stored in a potentially suspicious location that is used often by
+  malware for exfiltration.
 
   An adversary might compress data (e.g., sensitive documents) that is collected prior
   to exfiltration in order to make it portable and minimize the amount of data sent
@@ -41,5 +42,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

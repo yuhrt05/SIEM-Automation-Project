@@ -4,9 +4,10 @@ related:
 - id: 1b3b01c7-84e9-4072-86e5-fc285a41ff23
   type: similar
 status: test
-description: '[Source File: posh_pc_abuse_nslookup_with_dns_records.yml] Detects a
-  powershell download cradle using nslookup. This cradle uses nslookup to extract
-  payloads from DNS records.'
+description: '[Source: rules/powershell/powershell_classic/posh_pc_abuse_nslookup_with_dns_records.yml]
+  [Source File: posh_pc_abuse_nslookup_with_dns_records.yml] Detects a powershell
+  download cradle using nslookup. This cradle uses nslookup to extract payloads from
+  DNS records.'
 references:
 - https://twitter.com/Alh4zr3d/status/1566489367232651264
 author: Sai Prashanth Pulisetti @pulisettis, Aishwarya Singam
@@ -32,5 +33,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

@@ -4,8 +4,9 @@ related:
 - id: e55a5195-4724-480e-a77e-3ebe64bd3759
   type: derived
 status: test
-description: '[Source File: posh_pm_invoke_obfuscation_via_use_mhsta.yml] Detects
-  Obfuscated Powershell via use MSHTA in Scripts'
+description: '[Source: rules/powershell/powershell_module/posh_pm_invoke_obfuscation_via_use_mhsta.yml]
+  [Source File: posh_pm_invoke_obfuscation_via_use_mhsta.yml] Detects Obfuscated Powershell
+  via use MSHTA in Scripts'
 references:
 - https://github.com/SigmaHQ/sigma/issues/1009
 author: Nikita Nazarov, oscd.community
@@ -33,5 +34,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

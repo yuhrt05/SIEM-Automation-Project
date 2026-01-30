@@ -1,9 +1,9 @@
 title: Recon Information for Export with PowerShell
 id: a9723fcc-881c-424c-8709-fd61442ab3c3
 status: test
-description: '[Source File: posh_ps_susp_recon_export.yml] Once established within
-  a system or network, an adversary may use automated techniques for collecting internal
-  data'
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_recon_export.yml]
+  [Source File: posh_ps_susp_recon_export.yml] Once established within a system or
+  network, an adversary may use automated techniques for collecting internal data'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1119/T1119.md
 author: frack113
@@ -28,5 +28,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

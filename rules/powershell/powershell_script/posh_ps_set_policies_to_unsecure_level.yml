@@ -8,9 +8,10 @@ related:
 - id: fad91067-08c5-4d1a-8d8c-d96a21b37814
   type: similar
 status: test
-description: '[Source File: posh_ps_set_policies_to_unsecure_level.yml] Detects changing
-  the PowerShell script execution policy to a potentially insecure level using the
-  "Set-ExecutionPolicy" cmdlet.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_set_policies_to_unsecure_level.yml]
+  [Source File: posh_ps_set_policies_to_unsecure_level.yml] Detects changing the PowerShell
+  script execution policy to a potentially insecure level using the "Set-ExecutionPolicy"
+  cmdlet.'
 references:
 - https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.4
 - https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4
@@ -40,5 +41,3 @@ detection:
 falsepositives:
 - Administrator script
 level: medium
-
-# Force Redeploy 2026-01-30

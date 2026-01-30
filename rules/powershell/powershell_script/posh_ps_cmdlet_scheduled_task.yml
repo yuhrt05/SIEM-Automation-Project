@@ -1,9 +1,10 @@
 title: Powershell Create Scheduled Task
 id: 363eccc0-279a-4ccf-a3ab-24c2e63b11fb
 status: test
-description: '[Source File: posh_ps_cmdlet_scheduled_task.yml] Adversaries may abuse
-  the Windows Task Scheduler to perform task scheduling for initial or recurring execution
-  of malicious code'
+description: '[Source: rules/powershell/powershell_script/posh_ps_cmdlet_scheduled_task.yml]
+  [Source File: posh_ps_cmdlet_scheduled_task.yml] Adversaries may abuse the Windows
+  Task Scheduler to perform task scheduling for initial or recurring execution of
+  malicious code'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1053.005/T1053.005.md#atomic-test-4---powershell-cmdlet-scheduled-task
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1053.005/T1053.005.md#atomic-test-6---wmi-invoke-cimmethod-scheduled-task
@@ -44,5 +45,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

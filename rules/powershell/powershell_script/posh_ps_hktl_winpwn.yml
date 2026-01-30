@@ -4,9 +4,10 @@ related:
 - id: d557dc06-62e8-4468-a8e8-7984124908ce
   type: similar
 status: test
-description: '[Source File: posh_ps_hktl_winpwn.yml] Detects scriptblock text keywords
-  indicative of potential usge of the tool WinPwn. A tool for Windows and Active Directory
-  reconnaissance and exploitation.
+description: '[Source: rules/powershell/powershell_script/posh_ps_hktl_winpwn.yml]
+  [Source File: posh_ps_hktl_winpwn.yml] Detects scriptblock text keywords indicative
+  of potential usge of the tool WinPwn. A tool for Windows and Active Directory reconnaissance
+  and exploitation.
 
   '
 author: Swachchhanda Shrawan Poudel
@@ -47,5 +48,3 @@ falsepositives:
 - As the script block is a blob of text. False positive may occur with scripts that
   contain the keyword as a reference or simply use it for detection.
 level: high
-
-# Force Redeploy 2026-01-30

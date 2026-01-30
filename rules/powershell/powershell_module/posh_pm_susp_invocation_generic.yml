@@ -6,8 +6,9 @@ related:
 - id: ed965133-513f-41d9-a441-e38076a0798f
   type: similar
 status: test
-description: '[Source File: posh_pm_susp_invocation_generic.yml] Detects suspicious
-  PowerShell invocation command parameters'
+description: '[Source: rules/powershell/powershell_module/posh_pm_susp_invocation_generic.yml]
+  [Source File: posh_pm_susp_invocation_generic.yml] Detects suspicious PowerShell
+  invocation command parameters'
 references:
 - Internal Research
 author: Florian Roth (Nextron Systems)
@@ -40,5 +41,3 @@ detection:
 falsepositives:
 - Very special / sneaky PowerShell scripts
 level: high
-
-# Force Redeploy 2026-01-30

@@ -1,9 +1,10 @@
 title: Remove Account From Domain Admin Group
 id: 48a45d45-8112-416b-8a67-46e03a4b2107
 status: test
-description: '[Source File: posh_ps_susp_remove_adgroupmember.yml] Adversaries may
-  interrupt availability of system and network resources by inhibiting access to accounts
-  utilized by legitimate users.
+description: '[Source: rules/powershell/powershell_script/posh_ps_susp_remove_adgroupmember.yml]
+  [Source File: posh_ps_susp_remove_adgroupmember.yml] Adversaries may interrupt availability
+  of system and network resources by inhibiting access to accounts utilized by legitimate
+  users.
 
   Accounts may be deleted, locked, or manipulated (ex: changed credentials) to remove
   access to accounts.
@@ -30,5 +31,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

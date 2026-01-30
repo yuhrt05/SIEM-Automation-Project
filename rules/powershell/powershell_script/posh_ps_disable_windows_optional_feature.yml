@@ -1,9 +1,10 @@
 title: Disable-WindowsOptionalFeature Command PowerShell
 id: 99c4658d-2c5e-4d87-828d-7c066ca537c3
 status: test
-description: '[Source File: posh_ps_disable_windows_optional_feature.yml] Detect built
-  in PowerShell cmdlet Disable-WindowsOptionalFeature, Deployment Image Servicing
-  and Management tool.
+description: '[Source: rules/powershell/powershell_script/posh_ps_disable_windows_optional_feature.yml]
+  [Source File: posh_ps_disable_windows_optional_feature.yml] Detect built in PowerShell
+  cmdlet Disable-WindowsOptionalFeature, Deployment Image Servicing and Management
+  tool.
 
   Similar to DISM.exe, this cmdlet is used to enumerate, install, uninstall, configure,
   and update features and packages in Windows images
@@ -37,5 +38,3 @@ detection:
 falsepositives:
 - Unknown
 level: high
-
-# Force Redeploy 2026-01-30

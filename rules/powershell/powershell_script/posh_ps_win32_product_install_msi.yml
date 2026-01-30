@@ -1,8 +1,9 @@
 title: PowerShell WMI Win32_Product Install MSI
 id: 91109523-17f0-4248-a800-f81d9e7c081d
 status: test
-description: '[Source File: posh_ps_win32_product_install_msi.yml] Detects the execution
-  of an MSI file using PowerShell and the WMI Win32_Product class'
+description: '[Source: rules/powershell/powershell_script/posh_ps_win32_product_install_msi.yml]
+  [Source File: posh_ps_win32_product_install_msi.yml] Detects the execution of an
+  MSI file using PowerShell and the WMI Win32_Product class'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1218.007/T1218.007.md
 author: frack113
@@ -26,5 +27,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force Redeploy 2026-01-30

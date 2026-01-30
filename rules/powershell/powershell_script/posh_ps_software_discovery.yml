@@ -1,10 +1,10 @@
 title: Detected Windows Software Discovery - PowerShell
 id: 2650dd1a-eb2a-412d-ac36-83f06c4f2282
 status: test
-description: '[Source File: posh_ps_software_discovery.yml] Adversaries may attempt
-  to enumerate software for a variety of reasons, such as figuring out what security
-  measures are present or if the compromised system has a version of software that
-  is vulnerable.'
+description: '[Source: rules/powershell/powershell_script/posh_ps_software_discovery.yml]
+  [Source File: posh_ps_software_discovery.yml] Adversaries may attempt to enumerate
+  software for a variety of reasons, such as figuring out what security measures are
+  present or if the compromised system has a version of software that is vulnerable.'
 references:
 - https://github.com/redcanaryco/atomic-red-team/blob/f339e7da7d05f6057fdfcdd3742bfcf365fee2a9/atomics/T1518/T1518.md
 - https://github.com/harleyQu1nn/AggressorScripts
@@ -29,5 +29,3 @@ detection:
 falsepositives:
 - Legitimate administration activities
 level: medium
-
-# Force Redeploy 2026-01-30
