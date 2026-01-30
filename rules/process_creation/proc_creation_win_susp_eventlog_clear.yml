@@ -78,3 +78,5 @@ falsepositives:
 - Scripts and administrative tools used in the monitored environment
 - Maintenance activity
 level: high
+
+# Force update for deployment
