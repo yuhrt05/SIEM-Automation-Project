@@ -3,7 +3,6 @@ from tkinter import filedialog, messagebox
 import os, shutil, subprocess, threading, winsound, psutil, time
 from datetime import datetime
 from alert import AlertMonitor
-from en_dis import RuleManagerFrame # Import lớp quản lý rule từ file khác
 
 # --- CẤU HÌNH MÀU SẮC CLEAN TECH ---
 COLOR_BG_LIGHT = "#F0F2F5"     
@@ -24,7 +23,7 @@ class SOCXCommand(ctk.CTk):
         super().__init__()
 
         self.title("⚡SOC GUI⚡")
-        self.geometry("1100x900") # Tăng chiều cao một chút để chứa thêm card mới
+        self.geometry("1100x800")
 
         self.monitor_system = AlertMonitor()
         self.RULES_DIR = "rules/"
@@ -65,8 +64,7 @@ class SOCXCommand(ctk.CTk):
         self.mon_sw.pack(pady=(5, 15), padx=20)
 
         # --- MAIN WORKSPACE ---
-        # Sử dụng ScrollableFrame để giao diện không bị tràn khi thêm nhiều card
-        self.workspace = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.workspace = ctk.CTkFrame(self, fg_color="transparent")
         self.workspace.grid(row=0, column=1, sticky="nsew")
 
         # Header Stats
@@ -91,47 +89,42 @@ class SOCXCommand(ctk.CTk):
         row2 = ctk.CTkFrame(self.console_card, fg_color="transparent")
         row2.pack(fill="x", padx=30, pady=(0, 20))
         
+        # Ô nhập Commit MSG với Placeholder thông minh
         self.commit_input = ctk.CTkEntry(row2, height=40, fg_color="#F0F2F5", border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED)
         self.commit_input.insert(0, self.placeholder_msg)
         self.commit_input.pack(fill="x")
         
+        # Ràng buộc sự kiện (Event Binding)
         self.commit_input.bind("<FocusIn>", self._on_focus_in)
         self.commit_input.bind("<FocusOut>", self._on_focus_out)
 
-        # --- RULE MANAGER CARD (NEW INTEGRATION) ---
-        self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
-        self.rule_manager.pack(fill="x", padx=40, pady=10)
-
         # --- TERMINAL ---
         self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER, corner_radius=10)
-        self.term_frame.pack(fill="x", padx=40, pady=(20, 40))
-        
+        self.term_frame.pack(fill="both", expand=True, padx=40, pady=(20, 40))
         self.term_header = ctk.CTkFrame(self.term_frame, fg_color="transparent", height=35)
         self.term_header.pack(fill="x", padx=10, pady=(5, 0))
-        
         ctk.CTkLabel(self.term_header, text="SYSTEM MONITOR OUTPUT", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=5)
-        
-        # NÚT CLEAR LOG CỦA BẠN ĐÂY
         self.btn_clear = ctk.CTkButton(self.term_header, text="CLEAR LOG", width=90, height=25, fg_color="transparent", border_width=1, border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED, command=self.clear_log)
         self.btn_clear.pack(side="right", padx=5)
-        
-        self.log_box = ctk.CTkTextbox(self.term_frame, height=250, fg_color="transparent", text_color=COLOR_TEXT_DARK, font=("Consolas", 14))
+        self.log_box = ctk.CTkTextbox(self.term_frame, fg_color="transparent", text_color=COLOR_TEXT_DARK, font=("Consolas", 14))
         self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         self.write_log("WAR ROOM PROTOCOL INITIALIZED. STANDING BY.")
 
     # --- PLACEHOLDER LOGIC ---
     def _on_focus_in(self, event):
+        """Khi bấm vào ô nhập: Xóa dòng chữ hướng dẫn"""
         if self.commit_input.get() == self.placeholder_msg:
             self.commit_input.delete(0, 'end')
             self.commit_input.configure(text_color=COLOR_TEXT_DARK)
 
     def _on_focus_out(self, event):
+        """Khi bấm ra ngoài: Nếu ô trống thì hiện lại dòng chữ"""
         if not self.commit_input.get():
             self.commit_input.insert(0, self.placeholder_msg)
             self.commit_input.configure(text_color=COLOR_TEXT_MUTED)
 
-    # --- LOGIC HANDLING ---
+    # --- LOGIC HANDLING (GIỮ NGUYÊN) ---
     def browse_data(self):
         choice = messagebox.askyesnocancel("Data Type", "FOLDER (Yes) / FILE (No)?")
         if choice is None: return
@@ -197,12 +190,10 @@ class SOCXCommand(ctk.CTk):
                             if not os.path.exists(dest): os.makedirs(dest)
                             shutil.copy(os.path.join(root, file), dest); count += 1
                 self.write_log(f"SUCCESS: {count} rules ingested.")
-                self.rule_manager.load_rules() # Tự động load lại list manager sau khi copy
             else:
                 if not os.path.exists(self.RULES_DIR): os.makedirs(self.RULES_DIR)
                 shutil.copy(self.selected_path, self.RULES_DIR)
                 self.write_log("UNIT SUCCESS: File ingested.")
-                self.rule_manager.load_rules()
         except Exception as e: self.write_log(f"ERROR: {str(e)}")
         finally: self.btn_deploy.configure(state="normal", text="LOAD RULE")
 
@@ -216,14 +207,11 @@ class SOCXCommand(ctk.CTk):
 
     def _git_task(self, msg):
         try:
-            # Tự động chạy deploy_to_kibana.py để patch metadata/status trước khi push
-            self.write_log("PATCHING METADATA & STATUS MAP...")
-            subprocess.run(["python", "scripts/deploy_to_kibana.py"], check=True, capture_output=True)
-            
             for cmd in [["git", "add", "."], ["git", "commit", "-m", msg], ["git", "push", "origin", "main"]]:
                 subprocess.run(cmd, check=True, capture_output=True)
                 self.write_log(f"GIT: {' '.join(cmd)} - SUCCESS")
             self.write_log("✅ CLOUD SYNC COMPLETE.")
+            # Xóa ô nhập sau khi thành công và hiện lại placeholder
             self.commit_input.delete(0, 'end')
             self._on_focus_out(None)
         except Exception as e: self.write_log(f"GIT ERR: {str(e)}")
