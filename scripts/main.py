@@ -23,7 +23,7 @@ class SOCXCommand(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("⚡ SOC TACTICAL COMMAND - X PROTOCOL ⚡")
+        self.title("⚡SOC GUI⚡")
         self.geometry("1100x800")
 
         self.monitor_system = AlertMonitor()
