@@ -27,3 +27,5 @@ detection:
 falsepositives:
 - Legitimate usage of System.Net.NetworkInformation.Ping class
 level: medium
+
+# Force Redeploy 2026-01-30

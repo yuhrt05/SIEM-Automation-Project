@@ -32,3 +32,5 @@ detection:
 falsepositives:
 - Legitimate PowerShell Web Access installations by administrators
 level: high
+
+# Force Redeploy 2026-01-30

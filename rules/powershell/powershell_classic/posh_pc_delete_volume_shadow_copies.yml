@@ -28,3 +28,5 @@ falsepositives:
 - Legitimate Administrator deletes Shadow Copies using operating systems utilities
   for legitimate reason
 level: high
+
+# Force Redeploy 2026-01-30

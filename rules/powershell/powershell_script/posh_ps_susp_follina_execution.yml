@@ -27,3 +27,5 @@ detection:
 falsepositives:
 - Legitimate usage of "TroubleshootingPack" cmdlet for troubleshooting purposes
 level: medium
+
+# Force Redeploy 2026-01-30

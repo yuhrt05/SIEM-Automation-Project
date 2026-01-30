@@ -42,3 +42,5 @@ falsepositives:
 - Rare need to clear logs before doing something. Sometimes used by installers or
   cleaner scripts. The script should be investigated to determine if it's legitimate
 level: medium
+
+# Force Redeploy 2026-01-30

@@ -23,3 +23,5 @@ detection:
 falsepositives:
 - Legitimate usage of the cmdlet to forward emails
 level: medium
+
+# Force Redeploy 2026-01-30

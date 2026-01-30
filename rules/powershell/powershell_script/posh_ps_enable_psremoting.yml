@@ -23,3 +23,5 @@ detection:
 falsepositives:
 - Legitimate script
 level: medium
+
+# Force Redeploy 2026-01-30

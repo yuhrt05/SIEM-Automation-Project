@@ -45,3 +45,5 @@ falsepositives:
 - MSP Detection Searcher
 - Citrix ConfigSync.ps1
 level: medium
+
+# Force Redeploy 2026-01-30

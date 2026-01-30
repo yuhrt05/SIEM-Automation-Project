@@ -30,3 +30,5 @@ detection:
 falsepositives:
 - PowerShell scripts that download content from the Internet
 level: medium
+
+# Force Redeploy 2026-01-30

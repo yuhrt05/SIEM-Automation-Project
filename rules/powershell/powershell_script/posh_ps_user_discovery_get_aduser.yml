@@ -34,3 +34,5 @@ falsepositives:
 - Legitimate admin scripts may use the same technique, it's better to exclude specific
   computers or users who execute these commands or scripts often
 level: medium
+
+# Force Redeploy 2026-01-30

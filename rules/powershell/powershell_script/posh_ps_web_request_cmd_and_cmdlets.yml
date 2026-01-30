@@ -39,3 +39,5 @@ detection:
 falsepositives:
 - Use of Get-Command and Get-Help modules to reference Invoke-WebRequest and Start-BitsTransfer.
 level: medium
+
+# Force Redeploy 2026-01-30

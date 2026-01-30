@@ -29,3 +29,5 @@ detection:
 falsepositives:
 - Mimikatz can be useful for testing the security of networks
 level: high
+
+# Force Redeploy 2026-01-30

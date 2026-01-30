@@ -33,3 +33,5 @@ detection:
 falsepositives:
 - Legitimate certificate exports by administrators. Additional filters might be required.
 level: medium
+
+# Force Redeploy 2026-01-30

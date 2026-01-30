@@ -35,3 +35,5 @@ falsepositives:
 - Rare intended use of hidden services
 - Rare FP could occur due to the non linearity of the ScriptBlockText log
 level: high
+
+# Force Redeploy 2026-01-30

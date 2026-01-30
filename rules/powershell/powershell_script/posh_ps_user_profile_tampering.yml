@@ -35,3 +35,5 @@ falsepositives:
 - Legitimate administration and tuning scripts that aim to add functionality to a
   user PowerShell session
 level: medium
+
+# Force Redeploy 2026-01-30

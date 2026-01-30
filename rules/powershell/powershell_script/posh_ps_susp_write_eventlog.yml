@@ -24,3 +24,5 @@ falsepositives:
 - Legitimate applications writing events via this cmdlet. Investigate alerts to determine
   if the action is benign
 level: medium
+
+# Force Redeploy 2026-01-30

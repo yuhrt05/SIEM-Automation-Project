@@ -40,3 +40,5 @@ detection:
 falsepositives:
 - Very special / sneaky PowerShell scripts
 level: high
+
+# Force Redeploy 2026-01-30

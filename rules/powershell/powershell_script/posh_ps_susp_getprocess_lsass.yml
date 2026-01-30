@@ -23,3 +23,5 @@ falsepositives:
 - Legitimate certificate exports invoked by administrators or users (depends on processes
   in the environment - filter if unusable)
 level: high
+
+# Force Redeploy 2026-01-30

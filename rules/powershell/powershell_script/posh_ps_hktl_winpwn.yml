@@ -47,3 +47,5 @@ falsepositives:
 - As the script block is a blob of text. False positive may occur with scripts that
   contain the keyword as a reference or simply use it for detection.
 level: high
+
+# Force Redeploy 2026-01-30

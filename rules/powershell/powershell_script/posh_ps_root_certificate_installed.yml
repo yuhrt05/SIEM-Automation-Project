@@ -30,3 +30,5 @@ falsepositives:
 - Help Desk or IT may need to manually add a corporate Root CA on occasion. Need to
   test if GPO push doesn't trigger FP
 level: medium
+
+# Force Redeploy 2026-01-30

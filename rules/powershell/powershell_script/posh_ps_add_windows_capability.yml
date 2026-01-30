@@ -29,3 +29,5 @@ falsepositives:
 - Legitimate usage of the capabilities by administrators or users. Add additional
   filters accordingly.
 level: medium
+
+# Force Redeploy 2026-01-30
