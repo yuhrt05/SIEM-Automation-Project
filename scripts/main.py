@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import os, shutil, subprocess, threading, winsound, psutil, time
 from datetime import datetime
-from alert_main import AlertMonitor
+from alert import AlertMonitor
 
 # --- CẤU HÌNH MÀU SẮC CLEAN TECH ---
 COLOR_BG_LIGHT = "#F0F2F5"     
