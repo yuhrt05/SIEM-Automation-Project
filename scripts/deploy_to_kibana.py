@@ -4,12 +4,12 @@ import sys
 import io
 import os
 import shutil
+import yaml # Cần đảm bảo pip install pyyaml trong GitHub Actions
 
 # Đảm bảo in tiếng Việt không lỗi
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # --- CẤU HÌNH HỆ THỐNG ---
-# Lấy URL từ GitHub Secret
 URL = os.getenv('ELASTIC_URL') 
 USER = os.getenv('ELASTIC_USERNAME')
 PASS = os.getenv('ELASTIC_PASSWORD')
@@ -19,7 +19,7 @@ RULES_INPUT = 'rules/'
 NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
 
 def get_sigma_path():
-    """Tìm lệnh sigma phù hợp cho cả Windows và Linux (GitHub Actions)"""
+    """Tìm lệnh sigma phù hợp cho cả Windows và Linux"""
     sigma_path = shutil.which("sigma")
     if sigma_path:
         return f'"{sigma_path}"'
@@ -29,11 +29,42 @@ def get_sigma_path():
         return f'"{sigma_exe}"'
     return "sigma"
 
+def inject_metadata():
+    """Tự động chèn đường dẫn file vào description của từng Rule Sigma"""
+    print("[*] Đang kiểm tra và nhúng Metadata đường dẫn file...")
+    for root, _, files in os.walk(RULES_INPUT):
+        for file in files:
+            if file.endswith(('.yml', '.yaml')):
+                file_path = os.path.join(root, file)
+                # Tạo tag đường dẫn (Ví dụ: [Source: rules/powershell/powershell_script/abc.yml])
+                rel_path = os.path.relpath(file_path, start='.').replace(os.sep, '/')
+                file_tag = f"[Source: {rel_path}]"
+                
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = yaml.safe_load(f)
+                    
+                    if not data: continue
+                    
+                    original_desc = data.get('description', '')
+                    
+                    # Kiểm tra nếu chưa có tag thì mới chèn
+                    if file_tag not in original_desc:
+                        data['description'] = f"{file_tag} {original_desc}".strip()
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            # sort_keys=False để giữ nguyên thứ tự các trường trong file Sigma
+                            yaml.dump(data, f, allow_unicode=True, sort_keys=False)
+                        print(f"  [+] Đã cập nhật: {file}")
+                except Exception as e:
+                    print(f"  [-] Lỗi xử lý file {file}: {e}")
+
 def fast_deploy():
+    # Bước 0: Tự động cập nhật Metadata trước khi convert
+    inject_metadata()
+    
     sigma_cmd = get_sigma_path()
     print(f"[*] Đang sử dụng Sigma CLI: {sigma_cmd}")
-    print(f"[*] Kết nối đến SIEM qua URL: {URL}")
-    print(f"[*] Mục tiêu: Space [{SPACE_ID}]") # Xác nhận Space ID
+    print(f"[*] Mục tiêu: Space [{SPACE_ID}]")
     
     # Bước 1: Convert rules Sigma sang NDJSON
     cmd = f'{sigma_cmd} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
@@ -50,7 +81,7 @@ def fast_deploy():
     else:
         api_url = f"{URL}/s/{SPACE_ID}/api/detection_engine/rules/_import"
 
-    # Bước 3: Nạp file lên Kibana SIEM qua API
+    # Bước 3: Nạp file lên Kibana SIEM qua API với ghi đè (overwrite)
     print(f"[*] Đang đẩy luật lên SIEM qua API: {api_url}...")
     try:
         with open(NDJSON_OUTPUT, 'rb') as f:
@@ -62,7 +93,7 @@ def fast_deploy():
                 params={"overwrite": "true"}
             )
         if res.status_code == 200:
-            print(f"✅ THÀNH CÔNG! Luật đã được nạp vào Space [{SPACE_ID}].")
+            print(f"✅ THÀNH CÔNG! Luật đã được cập nhật vào Space [{SPACE_ID}].")
         else:
             print(f"❌ Lỗi API SIEM ({res.status_code}): {res.text}")
     except Exception as e:
