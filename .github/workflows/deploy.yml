@@ -20,7 +20,7 @@ jobs:
 
       - name: Install Tools
         run: |
-          pip install requests sigma-cli
+          pip install requests sigma-cli pyyaml
           sigma plugin install elasticsearch
 
       - name: Set Environment for Branch
