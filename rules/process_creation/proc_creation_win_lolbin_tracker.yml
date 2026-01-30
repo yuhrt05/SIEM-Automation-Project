@@ -1,0 +1,35 @@
+title: Potential DLL Injection Or Execution Using Tracker.exe
+id: 148431ce-4b70-403d-8525-fcc2993f29ea
+status: test
+description: '[Source: rules/process_creation/proc_creation_win_lolbin_tracker.yml]
+  Detects potential DLL injection and execution using "Tracker.exe"'
+references:
+- https://lolbas-project.github.io/lolbas/OtherMSBinaries/Tracker/
+author: Avneet Singh @v3t0_, oscd.community
+date: 2020-10-18
+modified: 2023-01-09
+tags:
+- attack.privilege-escalation
+- attack.defense-evasion
+- attack.t1055.001
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+  - Image|endswith: \tracker.exe
+  - Description: Tracker
+  selection_cli:
+    CommandLine|contains:
+    - ' /d '
+    - ' /c '
+  filter_msbuild1:
+    CommandLine|contains: ' /ERRORREPORT:PROMPT '
+  filter_msbuild2:
+    ParentImage|endswith:
+    - \Msbuild\Current\Bin\MSBuild.exe
+    - \Msbuild\Current\Bin\amd64\MSBuild.exe
+  condition: all of selection_* and not 1 of filter_*
+falsepositives:
+- Unknown
+level: medium

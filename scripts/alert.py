@@ -93,10 +93,16 @@ class AlertMonitor:
                     for fp, alert in aggregated_alerts.items():
                         _s = alert["source"]
                         count = alert["count"]
+
+                        p_name = _s.get('process', {}).get('name') or \
+                                (_s.get('powershell') and "POWERSHELL.EXE") or \
+                                (_s.get('event', {}).get('code') == "4625" and "LOGON (LSASS)") or \
+                                "N/A"
                         
+                        pp_name = _s.get('process', {}).get('parent', {}).get('name') or "N/A"
                         severity_raw = _s.get('kibana.alert.rule.severity') or "low"
                         risk_score = _s.get('kibana.alert.rule.risk_score') or 0
-                        pp_name = _s.get('process', {}).get('parent', {}).get('name') or "N/A"
+
 
                         # Logic hiển thị Icon & Label
                         icon = "🔴" if risk_score >= 70 else "🟡" if risk_score >= 40 else "🔵"
