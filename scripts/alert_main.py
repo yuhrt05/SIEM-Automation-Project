@@ -15,8 +15,7 @@ class AlertMonitor:
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
         self.TOKEN = os.getenv("TELEGRAM_TOKEN")
         self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-        # Quét toàn bộ Alert Index để không bỏ lỡ Dev Space
-        self.INDEX = ".internal.alerts-security.alerts-detection-dev-000001" 
+        self.INDEX = ".internal.alerts-security.alerts-default-000001" 
         
         self.es = Elasticsearch(self.ELASTIC_HOST, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
@@ -55,13 +54,9 @@ class AlertMonitor:
                     for hit in hits:
                         _src = hit['_source']
                         current_event_time = _src['@timestamp']
-                        
-                        # 1. Lấy thông tin User động
                         user_name = _src.get('user', {}).get('name') or \
                                     _src.get('winlog', {}).get('user', {}).get('name') or "Unknown"
                         
-                        # 2. ƯU TIÊN LẤY SCRIPT BLOCK TEXT ĐỂ LÀM EVIDENCE
-                        # Đây là phần cập nhật quan trọng nhất để tránh bị "Unknown"
                         cmd = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
                               _src.get('process', {}).get('command_line') or \
                               _src.get('event', {}).get('original') or "N/A"
@@ -74,8 +69,6 @@ class AlertMonitor:
                         p_name = proc.get('name') or "SYSTEM"
                         pp_name = proc.get('parent', {}).get('name') or "N/A"
 
-                        # 3. Bộ lọc kiểm tra dữ liệu hợp lệ
-                        # Nếu cả tên tiến trình và lệnh đều không có thì mới bỏ qua
                         if p_name == "SYSTEM" and cmd == "N/A":
                             self.last_checkpoint = current_event_time
                             continue
@@ -111,8 +104,7 @@ class AlertMonitor:
 
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
-            
-            # Chia nhỏ sleep để GUI phản hồi Stop nhanh hơn
+
             for _ in range(10):
                 if not self.running: break
                 time.sleep(1)

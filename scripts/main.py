@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import os, shutil, subprocess, threading, winsound, psutil, time
 from datetime import datetime
-from alert import AlertMonitor 
+from scripts.alert_main import AlertMonitor 
 
 # --- CẤU HÌNH MÀU SẮC CLEAN TECH ---
 COLOR_BG_LIGHT = "#F0F2F5"     
@@ -22,7 +22,7 @@ class SOCXCommand(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("⚡ SOC TACTICAL COMMAND - X PROTOCOL ⚡")
+        self.title("⚡ SOC GUI⚡")
         self.geometry("1100x800")
 
         self.monitor_system = AlertMonitor()
