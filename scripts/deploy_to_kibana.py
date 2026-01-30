@@ -4,9 +4,8 @@ import sys
 import io
 import os
 import shutil
-import yaml # Cần đảm bảo pip install pyyaml trong GitHub Actions
+import yaml
 
-# Đảm bảo in tiếng Việt không lỗi
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # --- CẤU HÌNH HỆ THỐNG ---
@@ -36,19 +35,14 @@ def inject_metadata():
         for file in files:
             if file.endswith(('.yml', '.yaml')):
                 file_path = os.path.join(root, file)
-                # Tạo tag đường dẫn (Ví dụ: [Source: rules/powershell/powershell_script/abc.yml])
                 rel_path = os.path.relpath(file_path, start='.').replace(os.sep, '/')
                 file_tag = f"[Source: {rel_path}]"
-                
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = yaml.safe_load(f)
-                    
                     if not data: continue
                     
                     original_desc = data.get('description', '')
-                    
-                    # Kiểm tra nếu chưa có tag thì mới chèn
                     if file_tag not in original_desc:
                         data['description'] = f"{file_tag} {original_desc}".strip()
                         with open(file_path, 'w', encoding='utf-8') as f:
@@ -59,28 +53,22 @@ def inject_metadata():
                     print(f"  [-] Lỗi xử lý file {file}: {e}")
 
 def fast_deploy():
-    # Bước 0: Tự động cập nhật Metadata trước khi convert
     inject_metadata()
-    
     sigma_cmd = get_sigma_path()
     print(f"[*] Đang sử dụng Sigma CLI: {sigma_cmd}")
     print(f"[*] Mục tiêu: Space [{SPACE_ID}]")
-    
     # Bước 1: Convert rules Sigma sang NDJSON
     cmd = f'{sigma_cmd} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
     print("[*] Đang convert rules Sigma...")
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
-    
     if result.returncode != 0:
         print(f"[-] Lỗi Sigma CLI: {result.stderr}")
         return
-
     # Bước 2: Xây dựng URL API dựa trên Space
     if SPACE_ID == 'default':
         api_url = f"{URL}/api/detection_engine/rules/_import"
     else:
         api_url = f"{URL}/s/{SPACE_ID}/api/detection_engine/rules/_import"
-
     # Bước 3: Nạp file lên Kibana SIEM qua API với ghi đè (overwrite)
     print(f"[*] Đang đẩy luật lên SIEM qua API: {api_url}...")
     try:

@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import os, shutil, subprocess, threading, winsound, psutil, time
 from datetime import datetime
-# Đảm bảo file alert.py nằm cùng thư mục và có class AlertMonitor
 from alert import AlertMonitor 
 
 # --- CẤU HÌNH MÀU SẮC CLEAN TECH ---
@@ -200,7 +199,6 @@ class SOCXCommand(ctk.CTk):
 
     def run_git_push(self):
         msg = self.commit_input.get()
-        # Kiểm tra nếu chỉ là placeholder thì không cho push
         if msg and msg != self.placeholder_msg:
             self.write_log("INITIATING CLOUD SYNCHRONIZATION...")
             threading.Thread(target=self._git_task, args=(msg,), daemon=True).start()
