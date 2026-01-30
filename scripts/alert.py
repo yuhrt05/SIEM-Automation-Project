@@ -15,12 +15,11 @@ class AlertMonitor:
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
         self.TOKEN = os.getenv("TELEGRAM_TOKEN")
         self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-        self.INDEX = ".internal.alerts-security.alerts-default-000001" 
+        self.INDEX = ".internal.alerts-security.alerts-default-000001"
         
         self.es = Elasticsearch(self.ELASTIC_HOST, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        self.sent_alerts_cache = set()
 
     def send_telegram(self, msg):
         try:
@@ -31,13 +30,12 @@ class AlertMonitor:
             print(f"\n[-] Telegram Error: {e}")
 
     def run_logic(self, log_callback):
-        """Hàm chạy logic quét toàn cục (Bỏ lọc User, Ưu tiên lấy Script Block)"""
-        log_callback("[*] SOC MONITORING ACTIVE: GLOBAL MODE")
+        log_callback("[*] SOC MONITORING ACTIVE: OPTIMIZED MODE")
         
         while self.running:
             try:
                 query = {
-                    "size": 100,
+                    "size": 500, # Tăng size để gom nhóm được nhiều hơn trong một đợt tấn công mạnh
                     "query": {
                         "bool": {
                             "must": [{"range": {"@timestamp": {"gt": self.last_checkpoint}}}]
@@ -50,61 +48,93 @@ class AlertMonitor:
                 hits = res['hits']['hits']
 
                 if hits:
-                    self.sent_alerts_cache.clear()
+                    # Dictionary để gom nhóm: {fingerprint: {data, count}}
+                    aggregated_alerts = {}
+
                     for hit in hits:
                         _src = hit['_source']
-                        current_event_time = _src['@timestamp']
+                        timestamp = _src['@timestamp']
+                        
+                        # 1. Lấy thông tin cơ bản
+                        rule_name = _src.get('kibana.alert.rule.name') or "Security Alert"
                         user_name = _src.get('user', {}).get('name') or \
                                     _src.get('winlog', {}).get('user', {}).get('name') or "Unknown"
                         
-                        cmd = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
-                              _src.get('process', {}).get('command_line') or \
-                              _src.get('event', {}).get('original') or "N/A"
+                        # 2. Xử lý Bằng chứng động (Dynamic Evidence)
+                        # Ưu tiên: PowerShell > Command Line > IP Nguồn (cho Logon) > Original Log
+                        evidence = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
+                                   _src.get('process', {}).get('command_line') or \
+                                   _src.get('source', {}).get('ip') or \
+                                   _src.get('winlog', {}).get('event_data', {}).get('IpAddress') or \
+                                   "System Activity"
 
-                        severity_raw = _src.get('kibana.alert.rule.severity') or "low"
-                        risk_score = _src.get('kibana.alert.rule.risk_score') or 0
-                        rule_name = _src.get('kibana.alert.rule.name') or "Security Alert"
-
-                        proc = _src.get('process', {})
-                        p_name = proc.get('name') or "SYSTEM"
-                        pp_name = proc.get('parent', {}).get('name') or "N/A"
-
-                        if p_name == "SYSTEM" and cmd == "N/A":
-                            self.last_checkpoint = current_event_time
-                            continue
-
-                        alert_fingerprint = f"{rule_name}|{p_name}|{cmd}"
-                        if alert_fingerprint in self.sent_alerts_cache:
-                            self.last_checkpoint = current_event_time
-                            continue
+                        proc_name = _src.get('process', {}).get('name') or "N/A"
                         
-                        self.sent_alerts_cache.add(alert_fingerprint)
+                        # 3. Tạo Fingerprint để gom nhóm
+                        # Nếu cùng 1 Rule, cùng 1 User và cùng 1 nội dung bằng chứng -> Gom lại
+                        fingerprint = f"{rule_name}|{user_name}|{evidence}"
 
-                        # Logic hiển thị
-                        severity = str(severity_raw).upper()
-                        icon = "🔴" if severity in ["HIGH", "CRITICAL"] or risk_score >= 70 else "🟡" if severity == "MEDIUM" or risk_score >= 40 else "🔵"
-                        label = "HIGH/CRITICAL" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
+                        if fingerprint not in aggregated_alerts:
+                            aggregated_alerts[fingerprint] = {
+                                "source": _src,
+                                "count": 1,
+                                "first_time": timestamp,
+                                "last_time": timestamp,
+                                "evidence": evidence,
+                                "proc_name": proc_name,
+                                "user": user_name,
+                                "rule": rule_name
+                            }
+                        else:
+                            aggregated_alerts[fingerprint]["count"] += 1
+                            aggregated_alerts[fingerprint]["last_time"] = timestamp
 
-                        local_time = parser.isoparse(current_event_time).astimezone(tz.tzlocal()).strftime('%H:%M:%S')
+                    # 4. Gửi các cảnh báo đã được gom nhóm
+                    for fp, alert in aggregated_alerts.items():
+                        _s = alert["source"]
+                        count = alert["count"]
 
-                        msg = (f"{icon} <b>{label} RISK ALERT</b>\n"
+                        p_name = _s.get('process', {}).get('name') or \
+                                (_s.get('powershell') and "POWERSHELL.EXE") or \
+                                (_s.get('event', {}).get('code') == "4625" and "LOGON (LSASS)") or \
+                                "N/A"
+                        
+                        pp_name = _s.get('process', {}).get('parent', {}).get('name') or "N/A"
+                        severity_raw = _s.get('kibana.alert.rule.severity') or "low"
+                        risk_score = _s.get('kibana.alert.rule.risk_score') or 0
+
+
+                        # Logic hiển thị Icon & Label
+                        icon = "🔴" if risk_score >= 70 else "🟡" if risk_score >= 40 else "🔵"
+                        label = "HIGH" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
+
+                        # Chuyển múi giờ hiển thị
+                        local_time = parser.isoparse(alert["last_time"]).astimezone(tz.tzlocal()).strftime('%H:%M:%S')
+
+                        # Header hiển thị số lần nếu > 1
+                        attempt_str = f" (x{count})" if count > 1 else ""
+
+                        msg = (f"{icon} <b>{label} RISK ALERT{attempt_str}</b>\n"
                                f"Risk Score: <code>{risk_score}</code>\n"
                                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                               f"🕒 Time: <code>{local_time}</code> | 👤 User: <code>{user_name}</code>\n"
-                               f"📝 Rule: <i>{rule_name}</i>\n"
+                               f"🕒 Time: <code>{local_time}</code> | 👤 User: <code>{alert['user']}</code>\n"
+                               f"📝 Rule: <i>{alert['rule']}</i>\n"
                                f"─────────────────────\n"
                                f"🔸 Parent: <code>{pp_name.upper()}</code>\n"
-                               f"🔸 Process: <code>{p_name.upper()}</code>\n"
-                               f"🖥 Evidence:\n<code>{str(cmd).strip()}</code>\n"
+                               f"🔸 Process: <code>{alert['proc_name'].upper()}</code>\n"
+                               f"🖥 Evidence:\n<code>{str(alert['evidence']).strip()[:500]}</code>\n"
                                f"━━━━━━━━━━━━━━━━━━━━━")
 
                         self.send_telegram(msg)
-                        log_callback(f"[!] Alert Triggered: {rule_name} (User: {user_name})")
-                        self.last_checkpoint = current_event_time
+                        log_callback(f"[!] Alert: {alert['rule']} | Attempts: {count}")
+                    
+                    # Cập nhật checkpoint là thời gian của bản ghi cuối cùng trong batch
+                    self.last_checkpoint = hits[-1]['_source']['@timestamp']
 
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
 
+            # Sleep thông minh
             for _ in range(10):
                 if not self.running: break
                 time.sleep(1)
