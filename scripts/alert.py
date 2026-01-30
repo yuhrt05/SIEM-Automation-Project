@@ -11,16 +11,15 @@ load_dotenv()
 
 class AlertMonitor:
     def __init__(self):
-        # Giữ nguyên cấu hình từ .env
         self.ELASTIC_HOST = os.getenv("ELASTIC_HOST")
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
         self.TOKEN = os.getenv("TELEGRAM_TOKEN")
         self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-        self.TARGET_USER = os.getenv("TARGET_USER")
-        self.INDEX = ".internal.alerts-security.alerts-default-000001"
+        # Quét toàn bộ Alert Index để không bỏ lỡ Dev Space
+        self.INDEX = ".internal.alerts-security.alerts-detection-dev-000001" 
         
         self.es = Elasticsearch(self.ELASTIC_HOST, basic_auth=self.AUTH, verify_certs=False)
-        self.running = False # Biến kiểm soát trạng thái Bật/Tắt
+        self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         self.sent_alerts_cache = set()
 
@@ -33,8 +32,8 @@ class AlertMonitor:
             print(f"\n[-] Telegram Error: {e}")
 
     def run_logic(self, log_callback):
-        """Hàm chạy logic quét, gọi từ thread của Dashboard"""
-        log_callback(f"[*] SOC MONITORING ACTIVE: {self.TARGET_USER}")
+        """Hàm chạy logic quét toàn cục (Bỏ lọc User, Ưu tiên lấy Script Block)"""
+        log_callback("[*] SOC MONITORING ACTIVE: GLOBAL MODE")
         
         while self.running:
             try:
@@ -42,11 +41,7 @@ class AlertMonitor:
                     "size": 100,
                     "query": {
                         "bool": {
-                            "must": [{"range": {"@timestamp": {"gt": self.last_checkpoint}}}],
-                            "filter": [{"multi_match": {
-                                "query": self.TARGET_USER, 
-                                "fields": ["user.name", "winlog.user.name", "related.user", "user.target.name"]
-                            }}]
+                            "must": [{"range": {"@timestamp": {"gt": self.last_checkpoint}}}]
                         }
                     },
                     "sort": [{"@timestamp": {"order": "asc"}}]
@@ -61,17 +56,27 @@ class AlertMonitor:
                         _src = hit['_source']
                         current_event_time = _src['@timestamp']
                         
-                        # --- GIỮ NGUYÊN TOÀN BỘ LOGIC TRUY XUẤT ---
+                        # 1. Lấy thông tin User động
+                        user_name = _src.get('user', {}).get('name') or \
+                                    _src.get('winlog', {}).get('user', {}).get('name') or "Unknown"
+                        
+                        # 2. ƯU TIÊN LẤY SCRIPT BLOCK TEXT ĐỂ LÀM EVIDENCE
+                        # Đây là phần cập nhật quan trọng nhất để tránh bị "Unknown"
+                        cmd = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
+                              _src.get('process', {}).get('command_line') or \
+                              _src.get('event', {}).get('original') or "N/A"
+
                         severity_raw = _src.get('kibana.alert.rule.severity') or "low"
                         risk_score = _src.get('kibana.alert.rule.risk_score') or 0
                         rule_name = _src.get('kibana.alert.rule.name') or "Security Alert"
 
                         proc = _src.get('process', {})
-                        p_name = proc.get('name')
-                        pp_name = proc.get('parent', {}).get('name')
-                        cmd = proc.get('command_line') or _src.get('event', {}).get('original')
+                        p_name = proc.get('name') or "SYSTEM"
+                        pp_name = proc.get('parent', {}).get('name') or "N/A"
 
-                        if not p_name and not cmd:
+                        # 3. Bộ lọc kiểm tra dữ liệu hợp lệ
+                        # Nếu cả tên tiến trình và lệnh đều không có thì mới bỏ qua
+                        if p_name == "SYSTEM" and cmd == "N/A":
                             self.last_checkpoint = current_event_time
                             continue
 
@@ -82,20 +87,32 @@ class AlertMonitor:
                         
                         self.sent_alerts_cache.add(alert_fingerprint)
 
-                        # --- XỬ LÝ HIỂN THỊ ALERT ---
+                        # Logic hiển thị
                         severity = str(severity_raw).upper()
                         icon = "🔴" if severity in ["HIGH", "CRITICAL"] or risk_score >= 70 else "🟡" if severity == "MEDIUM" or risk_score >= 40 else "🔵"
                         label = "HIGH/CRITICAL" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
 
                         local_time = parser.isoparse(current_event_time).astimezone(tz.tzlocal()).strftime('%H:%M:%S')
 
-                        msg = f"{icon} <b>{label} RISK ALERT</b>\nRisk Score: <code>{risk_score}</code>\n━━━━━━━━━━━━━━━━━━━━━\n🕒 Time: <code>{local_time}</code> | 👤 User: <code>{self.TARGET_USER}</code>\n📝 Rule: <i>{rule_name}</i>\n─────────────────────\n🔸 Parent: <code>{(pp_name or 'N/A').upper()}</code>\n🔸 Process: <code>{(p_name or 'N/A').upper()}</code>\n🖥 Evidence:\n<code>{str(cmd or 'N/A').strip()}</code>\n━━━━━━━━━━━━━━━━━━━━━"
+                        msg = (f"{icon} <b>{label} RISK ALERT</b>\n"
+                               f"Risk Score: <code>{risk_score}</code>\n"
+                               f"━━━━━━━━━━━━━━━━━━━━━\n"
+                               f"🕒 Time: <code>{local_time}</code> | 👤 User: <code>{user_name}</code>\n"
+                               f"📝 Rule: <i>{rule_name}</i>\n"
+                               f"─────────────────────\n"
+                               f"🔸 Parent: <code>{pp_name.upper()}</code>\n"
+                               f"🔸 Process: <code>{p_name.upper()}</code>\n"
+                               f"🖥 Evidence:\n<code>{str(cmd).strip()}</code>\n"
+                               f"━━━━━━━━━━━━━━━━━━━━━")
 
                         self.send_telegram(msg)
-                        log_callback(f"[!] Alert Triggered: {rule_name}")
+                        log_callback(f"[!] Alert Triggered: {rule_name} (User: {user_name})")
                         self.last_checkpoint = current_event_time
 
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
             
-            time.sleep(10) # Chu kỳ quét 10 giây
+            # Chia nhỏ sleep để GUI phản hồi Stop nhanh hơn
+            for _ in range(10):
+                if not self.running: break
+                time.sleep(1)
