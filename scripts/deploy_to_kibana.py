@@ -36,13 +36,6 @@ def process_rules():
                     data = yaml.safe_load(f)
                 if not data: continue
                 
-                # Update Description with Source Tag
-                desc = data.get('description', '')
-                if tag not in desc:
-                    data['description'] = f"{tag} {desc}".strip()
-                    with open(path, 'w', encoding='utf-8') as f:
-                        yaml.dump(data, f, allow_unicode=True, sort_keys=False)
-                
                 # Identify rules to be disabled on SIEM
                 if str(data.get('status', '')).lower() == 'deprecated':
                     deprecated_ids.append(data.get('id'))
