@@ -124,13 +124,9 @@ class RuleManagerFrame(ctk.CTkFrame):
                 # 3. Xử lý Local & Git (Chỉ chạy khi SIEM đã xóa xong các batches)
                 if success_on_siem:
                     dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
-                    
-                    # Dọn dẹp thùng rác nếu đã có bản cũ cùng tên
                     if os.path.exists(dest):
                         if os.path.isdir(dest): shutil.rmtree(dest)
                         else: os.remove(dest)
-                    
-                    # Di chuyển nguyên trạng Folder/File vào Trash (Giữ nguyên logic của bạn)
                     shutil.move(path, dest)
                     
                     # Đồng bộ Git
@@ -182,7 +178,6 @@ class RuleManagerFrame(ctk.CTkFrame):
         self._filter()
 
     def set_status(self, status):
-        # Giữ nguyên logic cập nhật trạng thái
         for item in self.tree.selection():
             path = self.tree.item(item, "tags")[0]
             if os.path.isdir(path): continue
