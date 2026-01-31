@@ -5,7 +5,7 @@ related:
   type: similar
 - id: 02030f2f-6199-49ec-b258-ea71b07e03dc
   type: similar
-status: deprecated
+status: test
 description: '[Source: rules/posh_pm_malicious_commandlets.yml] [Source: rules/powershell/powershell_module/posh_pm_malicious_commandlets.yml]
   [Source File: posh_pm_malicious_commandlets.yml] Detects Commandlet names from well-known
   PowerShell exploitation frameworks'
