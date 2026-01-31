@@ -236,7 +236,7 @@ class SOCXCommand(ctk.CTk):
             for cmd in [["git", "add", "."], ["git", "commit", "-m", msg], ["git", "push", "origin", "main"]]:
                 subprocess.run(cmd, check=True, capture_output=True)
                 self.write_log(f"GIT: {' '.join(cmd)} - SUCCESS")
-            self.write_log("✅ CLOUD SYNC COMPLETE.")
+            self.write_log("CLOUD SYNC COMPLETE.")
             self.commit_input.delete(0, 'end')
             self._on_focus_out(None)
         except Exception as e: self.write_log(f"GIT ERR: {str(e)}")

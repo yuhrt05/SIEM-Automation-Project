@@ -90,7 +90,7 @@ def deploy():
             res = requests.post(api, headers={"kbn-xsrf": "true"}, auth=(USER, PASS),
                                 files={'file': ('rules.ndjson', f, 'application/x-ndjson')},
                                 params={"overwrite": "true"})
-        print(f"✅ SUCCESS!" if res.status_code == 200 else f"❌ ERROR ({res.status_code}): {res.text}")
+        print(f"SUCCESS!" if res.status_code == 200 else f"ERROR ({res.status_code}): {res.text}")
     except Exception as e:
         print(f"[-] Connection failed: {e}")
 
