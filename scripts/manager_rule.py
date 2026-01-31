@@ -51,10 +51,8 @@ class RuleManagerFrame(ctk.CTkFrame):
         if not term:
             self.drop.pack_forget()
             return
-
         self.tree.delete(*self.tree.get_children())
         mode = self.mode_var.get()
-
         if mode == "Folder Mode":
             seen = set()
             for r in self.all_rules:
@@ -67,53 +65,48 @@ class RuleManagerFrame(ctk.CTkFrame):
             for r in self.all_rules:
                 if term in r['file'].lower() or term in r['title'].lower():
                     self.tree.insert("", "end", values=(r['status'], r['title']), tags=(r['path'],))
-
-        if self.tree.get_children():
-            self.drop.pack(fill="x", pady=(5, 0))
+        if self.tree.get_children(): self.drop.pack(fill="x", pady=(5, 0))
 
     def delete(self):
         sel = self.tree.selection()
         if not sel: return
-        mode = self.mode_var.get()
-        path = self.tree.item(sel[0], "tags")[0]
+        mode, path = self.mode_var.get(), self.tree.item(sel[0], "tags")[0]
         name = os.path.basename(path)
 
-        if not messagebox.askyesno("Confirm", f"Delete {mode}: {name}?"):
-            return
-
-        self.log_func(f"[*] Deleting {mode}: {name} (background)...")
+        if not messagebox.askyesno("Confirm", f"Delete {mode}: {name}?"): return
+        self.log_func(f"[*] Bulk Deleting {mode}: {name}...")
 
         def _delete_task():
             try:
+                # 1. Thu thập Rule IDs
                 targets = [os.path.join(r, f) for r, _, fs in os.walk(path) for f in fs if f.endswith(('.yml','.yaml'))] if mode == "Folder Mode" else [path]
-                env = {k: os.getenv(k) for k in ['ELASTIC_HOST2', 'ELASTIC_USER', 'ELASTIC_PASS']}
-                changed = False
-
+                payload = []
                 for p in targets:
                     try:
                         with open(p, encoding='utf-8') as f:
                             rid = yaml.safe_load(f).get('id')
-                        if rid:
-                            res = requests.delete(f"{env['ELASTIC_HOST2']}/api/detection_engine/rules?rule_id={rid}",
-                                                  auth=(env['ELASTIC_USER'], env['ELASTIC_PASS']),
-                                                  headers={"kbn-xsrf": "true"}, verify=False, timeout=10)
-                            if res.status_code in (200, 404):
-                                changed = True
-                                self.log_func(f"[+] Cleaned: {os.path.basename(p)}")
-                    except Exception as e:
-                        self.log_func(f"[-] {os.path.basename(p)}: {e}")
+                            if rid: payload.append({"rule_id": rid})
+                    except: continue
 
-                if changed:
+                if not payload: return self.log_func("[-] No valid Rule IDs found.")
+
+                # 2. Xóa hàng loạt trên SIEM (Bulk API)
+                env = {k: os.getenv(k) for k in ['ELASTIC_HOST2', 'ELASTIC_USER', 'ELASTIC_PASS']}
+                res = requests.post(f"{env['ELASTIC_HOST2']}/api/detection_engine/rules/_bulk_delete",
+                                    auth=(env['ELASTIC_USER'], env['ELASTIC_PASS']),
+                                    headers={"kbn-xsrf": "true"}, json=payload, verify=False, timeout=15)
+
+                if res.status_code == 200:
+                    # 3. Xử lý Local & Git
                     dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
                     shutil.move(path, dest)
-                    for cmd in [["git", "add", "."], ["git", "commit", "-m", f"SOC-GUI: Deleted {mode}"], ["git", "push"]]:
+                    for cmd in [["git", "add", "."], ["git", "commit", "-m", f"SOC-GUI: Bulk Deleted {len(payload)} rules"], ["git", "push"]]:
                         subprocess.run(cmd, capture_output=True, check=True)
-                    self.log_func(f"SUCCESS: {mode} deleted & synced")
-            except Exception as e:
-                self.log_func(f"[-] Delete error: {e}")
-            finally:
-                self.after(0, self.load_rules)
-                self.after(0, lambda: self.log_func("Delete done."))
+                    self.log_func(f"SUCCESS: {len(payload)} rules removed.")
+                else:
+                    self.log_func(f"[-] SIEM Error: {res.status_code} - {res.text}")
+            except Exception as e: self.log_func(f"[-] Error: {e}")
+            finally: self.after(0, self.load_rules)
 
         threading.Thread(target=_delete_task, daemon=True).start()
 
@@ -122,18 +115,13 @@ class RuleManagerFrame(ctk.CTkFrame):
         p = filedialog.askdirectory(initialdir=self.trash_dir) if mode == "Folder Mode" else \
             filedialog.askopenfilename(initialdir=self.trash_dir, filetypes=[("Sigma", "*.yml *.yaml")])
         if not p: return
-
         self.log_func(f"[*] Restoring {os.path.basename(p)}...")
-
         def _restore_task():
             try:
                 dest = os.path.join(self.rules_dir, os.path.basename(p).replace("_dir", ""))
                 shutil.move(p, dest)
-                self.after(0, lambda: self.log_func(f"[+] Restored: {os.path.basename(dest)}"))
-                self.after(0, self.load_rules)
-            except Exception as e:
-                self.log_func(f"[-] Restore error: {e}")
-
+                self.after(0, lambda: (self.log_func(f"[+] Restored: {os.path.basename(dest)}"), self.load_rules()))
+            except Exception as e: self.log_func(f"[-] Restore error: {e}")
         threading.Thread(target=_restore_task, daemon=True).start()
 
     def load_rules(self):
@@ -145,15 +133,11 @@ class RuleManagerFrame(ctk.CTkFrame):
                     try:
                         with open(p, encoding='utf-8') as file:
                             d = yaml.safe_load(file)
-                            if d:
-                                self.all_rules.append({
-                                    "path": p,
-                                    "file": f,
-                                    "status": 'OFF' if str(d.get('status', '')).lower() == 'deprecated' else 'ON',
-                                    "title": d.get('title', 'N/A')
-                                })
-                    except:
-                        pass
+                            if d: self.all_rules.append({
+                                "path": p, "file": f, "title": d.get('title', 'N/A'),
+                                "status": 'OFF' if str(d.get('status', '')).lower() == 'deprecated' else 'ON'
+                            })
+                    except: pass
         self._filter()
 
     def set_status(self, status):
@@ -161,12 +145,10 @@ class RuleManagerFrame(ctk.CTkFrame):
             path = self.tree.item(item, "tags")[0]
             if os.path.isdir(path): continue
             try:
-                with open(path, encoding='utf-8') as f:
-                    data = yaml.safe_load(f)
+                with open(path, encoding='utf-8') as f: data = yaml.safe_load(f)
                 data['status'] = status
                 with open(path, 'w', encoding='utf-8') as f:
                     yaml.dump(data, f, allow_unicode=True, sort_keys=False)
                 self.log_func(f"Updated: {os.path.basename(path)} → {status.upper()}")
-            except:
-                pass
+            except: pass
         self.load_rules()
