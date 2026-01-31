@@ -15,6 +15,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
 # Import lớp từ file en_dis.py và AlertMonitor
+
 from alert import AlertMonitor
 from en_dis import RuleManagerFrame 
 
@@ -112,10 +113,6 @@ class SOCXCommand(ctk.CTk):
         self.commit_input.bind("<FocusIn>", self._on_focus_in)
         self.commit_input.bind("<FocusOut>", self._on_focus_out)
 
-        # --- RULE MANAGER CARD (TÍCH HỢP LỚP MỚI) ---
-        self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
-        self.rule_manager.pack(fill="x", padx=40, pady=10)
-
         # --- TERMINAL ---
         self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER, corner_radius=10)
         self.term_frame.pack(fill="x", padx=40, pady=(20, 40))
@@ -132,6 +129,10 @@ class SOCXCommand(ctk.CTk):
         self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         self.write_log("WAR ROOM PROTOCOL INITIALIZED. STANDING BY.")
+
+        # --- RULE MANAGER CARD (TÍCH HỢP LỚP MỚI) ---
+        self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
+        self.rule_manager.pack(fill="x", padx=40, pady=10)
 
     # --- PLACEHOLDER LOGIC ---
     def _on_focus_in(self, event):
