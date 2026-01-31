@@ -78,46 +78,76 @@ class RuleManagerFrame(ctk.CTkFrame):
 
         def _delete_task():
             try:
-                # 1. Thu thập dữ liệu IDs và thông tin Mapping
-                targets = [os.path.join(r, f) for r, _, fs in os.walk(path) for f in fs if f.endswith(('.yml','.yaml'))] if mode == "Folder Mode" else [path]
-                payload = []
+                # 1. Thu thập tất cả Rule IDs trong mục tiêu (File hoặc Folder)
+                targets = []
+                if mode == "Folder Mode":
+                    for r, _, fs in os.walk(path):
+                        for f in fs:
+                            if f.endswith(('.yml', '.yaml')):
+                                targets.append(os.path.join(r, f))
+                else:
+                    targets = [path]
+
+                payload_full = []
                 for p in targets:
                     try:
                         with open(p, encoding='utf-8') as f:
                             rid = yaml.safe_load(f).get('id')
-                            if rid: payload.append({"rule_id": rid})
+                            if rid: payload_full.append({"rule_id": rid})
                     except: continue
 
-                if not payload: return self.log_func("[-] No valid Rule IDs found.")
+                if not payload_full: 
+                    return self.log_func("[-] No valid Rule IDs found.")
 
-                # 2. Thực thi Bulk Delete trên SIEM
+                # 2. CHUNKING: Chia nhỏ payload để tránh Timeout SIEM (100 rules mỗi batch)
+                chunk_size = 100
+                chunks = [payload_full[i:i + chunk_size] for i in range(0, len(payload_full), chunk_size)]
+                
                 env = {k: os.getenv(k) for k in ['ELASTIC_HOST2', 'ELASTIC_USER', 'ELASTIC_PASS']}
-                res = requests.post(f"{env['ELASTIC_HOST2']}/api/detection_engine/rules/_bulk_delete",
-                                    auth=(env['ELASTIC_USER'], env['ELASTIC_PASS']),
-                                    headers={"kbn-xsrf": "true", "Content-Type": "application/json"}, 
-                                    json=payload, verify=False, timeout=20)
+                self.log_func(f"[*] Processing {len(payload_full)} rules in {len(chunks)} batches...")
 
-                # 3. Phân tích kết quả trả về từ SIEM
-                if res.status_code == 200:
-                    data = res.json()
-                    # Elastic Bulk API trả về mảng kết quả, ta kiểm tra nếu có lỗi lẻ tẻ bên trong
-                    errors = [item for item in data if "error" in item]
+                success_on_siem = True
+                for idx, chunk in enumerate(chunks):
+                    # Tăng timeout lên 60s cho mỗi đợt gửi
+                    res = requests.post(f"{env['ELASTIC_HOST2']}/api/detection_engine/rules/_bulk_delete",
+                                        auth=(env['ELASTIC_USER'], env['ELASTIC_PASS']),
+                                        headers={"kbn-xsrf": "true", "Content-Type": "application/json"}, 
+                                        json=chunk, verify=False, timeout=60)
                     
-                    if not errors:
-                        # Xóa thành công tuyệt đối -> Xử lý Local & Git
-                        dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
-                        if os.path.exists(dest): shutil.rmtree(dest) if os.path.isdir(dest) else os.remove(dest)
-                        shutil.move(path, dest)
-                        
-                        for cmd in [["git", "add", "."], ["git", "commit", "-m", f"SOC-GUI: Bulk Deleted {len(payload)} rules"], ["git", "push"]]:
-                            subprocess.run(cmd, capture_output=True, check=True)
-                        self.log_func(f"SUCCESS: {len(payload)} rules removed from SIEM & Sync Git.")
+                    if res.status_code != 200:
+                        self.log_func(f"[-] Batch {idx+1} failed (HTTP {res.status_code}). Aborting.")
+                        success_on_siem = False
+                        break
                     else:
-                        self.log_func(f"[-] Partial success: {len(payload)-len(errors)} deleted, {len(errors)} failed.")
+                        self.log_func(f"[+] Batch {idx+1}/{len(chunks)} cleared on SIEM.")
+
+                # 3. Xử lý Local & Git (Chỉ chạy khi SIEM đã xóa xong các batches)
+                if success_on_siem:
+                    dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
+                    
+                    # Dọn dẹp thùng rác nếu đã có bản cũ cùng tên
+                    if os.path.exists(dest):
+                        if os.path.isdir(dest): shutil.rmtree(dest)
+                        else: os.remove(dest)
+                    
+                    # Di chuyển nguyên trạng Folder/File vào Trash (Giữ nguyên logic của bạn)
+                    shutil.move(path, dest)
+                    
+                    # Đồng bộ Git
+                    try:
+                        subprocess.run(["git", "add", "."], capture_output=True, check=True)
+                        subprocess.run(["git", "commit", "-m", f"SOC-GUI: Bulk Deleted {mode} {name}"], capture_output=True, check=True)
+                        subprocess.run(["git", "push"], capture_output=True, check=True)
+                        self.log_func(f"SUCCESS: {len(payload_full)} rules removed and Git synced.")
+                    except subprocess.CalledProcessError as ge:
+                        self.log_func(f"[!] SIEM OK, but Git Error: {ge}")
                 else:
-                    self.log_func(f"[-] SIEM Error {res.status_code}: {res.text[:100]}")
-            except Exception as e: self.log_func(f"[-] Critical Error: {e}")
-            finally: self.after(0, self.load_rules)
+                    self.log_func("[-] Process aborted. Local files remain unchanged to prevent desync.")
+
+            except Exception as e: 
+                self.log_func(f"[-] Critical Error: {e}")
+            finally: 
+                self.after(0, self.load_rules)
 
         threading.Thread(target=_delete_task, daemon=True).start()
 
