@@ -9,7 +9,7 @@ related:
   type: obsolete
 - id: 83083ac6-1816-4e76-97d7-59af9a9ae46e
   type: obsolete
-status: test
+status: deprecated
 description: '[Source: rules/powershell/powershell_script/posh_ps_malicious_commandlets.yml]
   [Source File: posh_ps_malicious_commandlets.yml] Detects Commandlet names from well-known
   PowerShell exploitation frameworks'
