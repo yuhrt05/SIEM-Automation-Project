@@ -1,6 +1,6 @@
 title: Firewall Disabled via Netsh.EXE
 id: 57c4bf16-227f-4394-8ec7-1b745ee061c3
-status: test
+status: deprecated
 description: '[Source: rules/process_creation/proc_creation_win_netsh_fw_disable.yml]
   Detects netsh commands that turns off the Windows firewall'
 references:
@@ -37,5 +37,3 @@ detection:
 falsepositives:
 - Legitimate administration activity
 level: medium
-
-# Force update for deployment

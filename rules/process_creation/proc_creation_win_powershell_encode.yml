@@ -1,6 +1,6 @@
 title: Suspicious Execution of Powershell with Base64
 id: fb843269-508c-4b76-8b8d-88679db22ce7
-status: test
+status: deprecated
 description: '[Source: rules/process_creation/proc_creation_win_powershell_encode.yml]
   Commandline to launch powershell with a base64 payload'
 references:
@@ -37,5 +37,3 @@ detection:
 falsepositives:
 - Unknown
 level: medium
-
-# Force update for deployment
