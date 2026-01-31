@@ -17,7 +17,7 @@ from tkinter import filedialog, messagebox
 # Import lớp từ file en_dis.py và AlertMonitor
 
 from alert import AlertMonitor
-from en_dis import RuleManagerFrame 
+from manager_rule import RuleManagerFrame 
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
@@ -128,7 +128,7 @@ class SOCXCommand(ctk.CTk):
         self.log_box = ctk.CTkTextbox(self.term_frame, height=250, fg_color="transparent", text_color=COLOR_TEXT_DARK, font=("Consolas", 14))
         self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        self.write_log("WAR ROOM PROTOCOL INITIALIZED. STANDING BY.")
+        self.write_log("SOC Manager System: Ready.")
 
         # --- RULE MANAGER CARD (TÍCH HỢP LỚP MỚI) ---
         self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
@@ -166,7 +166,7 @@ class SOCXCommand(ctk.CTk):
                 threading.Thread(target=self.monitor_system.run_logic, args=(self.write_log,), daemon=True).start()
         else:
             self.monitor_system.running = False
-            self.write_log("⚪ SYSTEM: MONITORING STANDBY. SECURITY STABLE.")
+            self.write_log("SYSTEM: MONITORING STANDBY. SECURITY STABLE.")
             winsound.Beep(400, 150)
 
     def _blink_indicator(self):
@@ -184,7 +184,7 @@ class SOCXCommand(ctk.CTk):
 
     def clear_log(self):
         self.log_box.delete("1.0", "end")
-        self.write_log("TERMINAL PURGED. LOG SYSTEM RESET.")
+        self.write_log("LOG SYSTEM RESET.")
 
     def _update_system_stats(self):
         while True:

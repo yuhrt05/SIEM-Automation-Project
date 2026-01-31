@@ -67,7 +67,7 @@ class RuleManagerFrame(ctk.CTkFrame):
                 f_path = os.path.dirname(r['path'])
                 f_name = os.path.basename(f_path)
                 if term in f_name.lower() and f_path not in seen:
-                    self.tree.insert("", "end", values=("DIR", f"📂 Folder: {f_name}"), tags=(f_path,))
+                    self.tree.insert("", "end", values=("DIR", f"Folder: {f_name}"), tags=(f_path,))
                     seen.add(f_path); results.append(f_path)
         else:
             res = [r for r in self.all_rules if term in r['file'].lower() or term in r['title'].lower()]
@@ -86,7 +86,7 @@ class RuleManagerFrame(ctk.CTkFrame):
 
         targets = [os.path.join(root, f) for root, _, files in os.walk(path) for f in files if f.endswith(('.yml', '.yaml'))] if mode == "Folder Mode" else [path]
         
-        host, user, pwd = os.getenv('ELASTIC_HOST'), os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')
+        host, user, pwd = os.getenv('ELASTIC_HOST2'), os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')
         changed = False
         for p in targets:
             try:
@@ -103,7 +103,7 @@ class RuleManagerFrame(ctk.CTkFrame):
                 shutil.move(path, os.path.join(self.trash_dir, dest_name))
                 for cmd in [["git", "add", "."], ["git", "commit", "-m", f"SOC-GUI: Deleted {mode}"], ["git", "push"]]:
                     subprocess.run(cmd, capture_output=True)
-                self.log_func(f"[⭐] SUCCESS: {mode} Sync complete.")
+                self.log_func(f"SUCCESS: {mode} Sync complete.")
             except Exception as e: self.log_func(f"[!] Sync Error: {e}")
         self.load_rules()
 

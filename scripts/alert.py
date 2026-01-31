@@ -11,13 +11,13 @@ load_dotenv()
 
 class AlertMonitor:
     def __init__(self):
-        self.ELASTIC_HOST = os.getenv("ELASTIC_HOST")
+        self.ELASTIC_HOST1 = os.getenv("ELASTIC_HOST1")
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
         self.TOKEN = os.getenv("TELEGRAM_TOKEN")
         self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
         self.INDEX = ".internal.alerts-security.alerts-default-000001"
         
-        self.es = Elasticsearch(self.ELASTIC_HOST, basic_auth=self.AUTH, verify_certs=False)
+        self.es = Elasticsearch(self.ELASTIC_HOST1, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
