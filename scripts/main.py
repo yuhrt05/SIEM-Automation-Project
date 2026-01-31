@@ -1,9 +1,24 @@
+import subprocess
+import requests
+import sys
+import io
+import os
+import shutil
+import yaml
+import json
+import threading
+import winsound
+import psutil
+import time
+from datetime import datetime
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-import os, shutil, subprocess, threading, winsound, psutil, time
-from datetime import datetime
+
+# Import lớp từ file en_dis.py và AlertMonitor
 from alert import AlertMonitor
-from en_dis import RuleManagerFrame # Import lớp quản lý rule từ file khác
+from en_dis import RuleManagerFrame 
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # --- CẤU HÌNH MÀU SẮC CLEAN TECH ---
 COLOR_BG_LIGHT = "#F0F2F5"     
@@ -24,7 +39,7 @@ class SOCXCommand(ctk.CTk):
         super().__init__()
 
         self.title("⚡SOC GUI⚡")
-        self.geometry("1100x900") # Tăng chiều cao một chút để chứa thêm card mới
+        self.geometry("1100x900") 
 
         self.monitor_system = AlertMonitor()
         self.RULES_DIR = "rules/"
@@ -65,7 +80,6 @@ class SOCXCommand(ctk.CTk):
         self.mon_sw.pack(pady=(5, 15), padx=20)
 
         # --- MAIN WORKSPACE ---
-        # Sử dụng ScrollableFrame để giao diện không bị tràn khi thêm nhiều card
         self.workspace = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.workspace.grid(row=0, column=1, sticky="nsew")
 
@@ -98,7 +112,7 @@ class SOCXCommand(ctk.CTk):
         self.commit_input.bind("<FocusIn>", self._on_focus_in)
         self.commit_input.bind("<FocusOut>", self._on_focus_out)
 
-        # --- RULE MANAGER CARD (NEW INTEGRATION) ---
+        # --- RULE MANAGER CARD (TÍCH HỢP LỚP MỚI) ---
         self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
         self.rule_manager.pack(fill="x", padx=40, pady=10)
 
@@ -111,7 +125,6 @@ class SOCXCommand(ctk.CTk):
         
         ctk.CTkLabel(self.term_header, text="SYSTEM MONITOR OUTPUT", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=5)
         
-        # NÚT CLEAR LOG CỦA BẠN ĐÂY
         self.btn_clear = ctk.CTkButton(self.term_header, text="CLEAR LOG", width=90, height=25, fg_color="transparent", border_width=1, border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED, command=self.clear_log)
         self.btn_clear.pack(side="right", padx=5)
         
@@ -197,7 +210,7 @@ class SOCXCommand(ctk.CTk):
                             if not os.path.exists(dest): os.makedirs(dest)
                             shutil.copy(os.path.join(root, file), dest); count += 1
                 self.write_log(f"SUCCESS: {count} rules ingested.")
-                self.rule_manager.load_rules() # Tự động load lại list manager sau khi copy
+                self.rule_manager.load_rules() 
             else:
                 if not os.path.exists(self.RULES_DIR): os.makedirs(self.RULES_DIR)
                 shutil.copy(self.selected_path, self.RULES_DIR)
@@ -216,7 +229,6 @@ class SOCXCommand(ctk.CTk):
 
     def _git_task(self, msg):
         try:
-            # Tự động chạy deploy_to_kibana.py để patch metadata/status trước khi push
             self.write_log("PATCHING METADATA & STATUS MAP...")
             subprocess.run(["python", "scripts/deploy_to_kibana.py"], check=True, capture_output=True)
             
