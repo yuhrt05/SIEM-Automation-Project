@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
-import os, yaml, requests
+import os, yaml, requests, shutil, subprocess
 
 class RuleManagerFrame(ctk.CTkFrame):
     def __init__(self, parent, rules_dir, log_func):
@@ -9,6 +9,11 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.log_func = log_func
         self.all_rules = []
         
+        # Tạo thư mục trash nếu chưa có để sẵn sàng đồng bộ lên GitHub
+        self.trash_dir = "trash"
+        if not os.path.exists(self.trash_dir):
+            os.makedirs(self.trash_dir)
+            
         self._init_ui()
         self.load_rules()
 
@@ -16,7 +21,6 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.container = ctk.CTkFrame(self, fg_color="transparent")
         self.container.pack(fill="x", padx=10, pady=10)
 
-        # --- DÒNG ĐIỀU KHIỂN ---
         self.ctrl_row = ctk.CTkFrame(self.container, fg_color="transparent")
         self.ctrl_row.pack(fill="x")
 
@@ -27,20 +31,18 @@ class RuleManagerFrame(ctk.CTkFrame):
                                   width=350, height=35, textvariable=self.search_var, border_width=1)
         self.entry.pack(side="left", padx=(0, 10))
 
-        # Buttons: ON, OFF, DELETE
         ctk.CTkButton(self.ctrl_row, text="ON", width=50, height=35, fg_color="#28A745", 
                       font=("Segoe UI", 11, "bold"), command=lambda: self.set_status("test")).pack(side="left", padx=2)
         
         ctk.CTkButton(self.ctrl_row, text="OFF", width=50, height=35, fg_color="#FF3B30", 
                       font=("Segoe UI", 11, "bold"), command=lambda: self.set_status("disabled")).pack(side="left", padx=2)
 
-        # NÚT DELETE CHIẾN THUẬT: Sạch SIEM mới sạch Repo
+        # NÚT DELETE CHIẾN THUẬT: TRASH & PUSH
         self.btn_delete = ctk.CTkButton(self.ctrl_row, text="DELETE", width=70, height=35, 
                                         fg_color="#6C757D", hover_color="#5A6268",
                                         font=("Segoe UI", 11, "bold"), command=self.delete_rule_fully)
         self.btn_delete.pack(side="left", padx=(10, 0))
 
-        # --- TREEVIEW AREA ---
         self.drop_frame = ctk.CTkFrame(self.container, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB")
         style = ttk.Style()
         style.configure("Small.Treeview", font=("Segoe UI", 10), rowheight=28)
@@ -52,67 +54,76 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.tree.pack(fill="both", expand=True, padx=2, pady=2)
 
     def delete_rule_fully(self):
-        """Xóa đồng bộ: Tự động chuẩn hóa URL về http và port 5601"""
+        """Logic: Xóa SIEM -> Move to Trash -> Git Push (Bắt buộc)"""
         selected = self.tree.selection()
         if not selected: return
 
-        if not messagebox.askyesno("Xác nhận", "Hệ thống sẽ chuẩn hóa URL về HTTP:5601 để gỡ Rule trên SIEM. Tiếp tục?"):
+        if not messagebox.askyesno("Xác nhận gỡ bỏ", "Rule sẽ bị gỡ trên SIEM và đưa vào Trash trên GitHub. Tiếp tục?"):
             return
 
-        # 1. Đọc host gốc từ .env
-        raw_host = os.getenv('ELASTIC_HOST') # Ví dụ: https://192.168.129.139:9200
+        # Đọc cấu hình từ .env
+        raw_host = os.getenv('ELASTIC_HOST')
         user = os.getenv('ELASTIC_USER')
         password = os.getenv('ELASTIC_PASS')
 
-        # 2. XỬ LÝ CHUẨN HÓA URL (Ép về http và port 5601)
+        # TỰ ĐỘNG ÉP URL VỀ HTTP:5601
         clean_host = raw_host
         if raw_host:
-            # Loại bỏ http:// hoặc https:// nếu có để lấy IP/Domain
             ip_part = raw_host.replace("https://", "").replace("http://", "").split(":")[0]
-            # Xây dựng lại URL chuẩn cho Kibana API
             clean_host = f"http://{ip_part}:5601"
-            self.log_func(f"🛠️ URL RECONSTRUCTED: {clean_host}")
+
+        changed = False
+        deleted_list = []
 
         for item in selected:
             path = self.tree.item(item, "tags")[0]
-            siem_cleared = False 
+            filename = os.path.basename(path)
+            siem_cleared = False
             
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     data = yaml.safe_load(f)
                     rule_id = data.get('id')
 
-                # GỌI API XÓA
+                # 1. THỰC THI GỠ TRÊN SIEM
                 if rule_id and clean_host:
                     url = f"{clean_host}/api/detection_engine/rules?rule_id={rule_id}"
                     headers = {"kbn-xsrf": "true"}
-                    
                     try:
-                        # Dùng clean_host đã được ép về http://
                         res = requests.delete(url, auth=(user, password), headers=headers, verify=False, timeout=10)
-                        
-                        if res.status_code == 200:
-                            self.log_func(f"[+] SIEM: Đã gỡ bỏ thành công ID {rule_id}")
+                        if res.status_code in [200, 404]:
+                            self.log_func(f"[+] SIEM: Đã dọn sạch ID {rule_id}")
                             siem_cleared = True
-                        elif res.status_code == 404:
-                            self.log_func(f"[!] SIEM: Rule không tồn tại. Tiếp tục xóa file local.")
-                            siem_cleared = True 
                         else:
-                            self.log_func(f"[-] SIEM: Lỗi {res.status_code}. Không xóa file.")
-                    except Exception as api_err:
-                        self.log_func(f"[-] SIEM: Lỗi kết nối ({api_err}).")
+                            self.log_func(f"[-] SIEM: Lỗi {res.status_code}. Không gỡ file Repo.")
+                    except Exception as e:
+                        self.log_func(f"[-] SIEM: Lỗi kết nối ({e}).")
 
-                # CHỈ XÓA FILE KHI SIEM ĐÃ SẠCH
+                # 2. DI CHUYỂN VÀO TRASH (NẾU SIEM ĐÃ SẠCH)
                 if siem_cleared:
                     if os.path.exists(path):
-                        os.remove(path)
-                        self.log_func(f"[+] REPO: Đã xóa file {os.path.basename(path)}")
-                    self.tree.delete(item)
-                else:
-                    self.log_func(f"⚠️ CẢNH BÁO: Giữ lại file vì SIEM chưa phản hồi thành công.")
+                        dest_path = os.path.join(self.trash_dir, filename)
+                        shutil.move(path, dest_path) # Move thay vì remove
+                        
+                        self.log_func(f"[+] REPO: Đã ném {filename} vào TRASH.")
+                        self.tree.delete(item)
+                        deleted_list.append(filename)
+                        changed = True
 
             except Exception as e:
-                self.log_func(f"[-] Lỗi: {e}")
+                self.log_func(f"[-] Lỗi xử lý {filename}: {e}")
+
+        # 3. TỰ ĐỘNG ĐỒNG BỘ LÊN GITHUB
+        if changed:
+            self.log_func("🚀 INITIATING AUTO-SYNC TO GITHUB...")
+            try:
+                commit_msg = f"SOC-GUI-AUTO: Move {', '.join(deleted_list)} to trash"
+                subprocess.run(["git", "add", "."], check=True)
+                subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+                subprocess.run(["git", "push"], check=True)
+                self.log_func("[⭐] SUCCESS: CLOUD & SIEM SYNCHRONIZED.")
+            except Exception as git_err:
+                self.log_func(f"[!] Git Sync Failed: {git_err}")
         
         self.load_rules()
 
