@@ -3,7 +3,7 @@ id: cd219ff3-fa99-45d4-8380-a7d15116c6dc
 related:
 - id: b9f0e6f5-09b4-4358-bae4-08408705bd5c
   type: similar
-status: disabled
+status: deprecated
 description: '[Source: rules/process_creation/proc_creation_win_net_user_add.yml]
   Identifies the creation of local users via the net.exe command.'
 references:

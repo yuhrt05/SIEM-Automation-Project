@@ -17,7 +17,6 @@ class RuleManagerFrame(ctk.CTkFrame):
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="x", padx=10, pady=10)
 
-        # Control Row
         ctrl = ctk.CTkFrame(container, fg_color="transparent")
         ctrl.pack(fill="x")
 
@@ -27,15 +26,14 @@ class RuleManagerFrame(ctk.CTkFrame):
         ctk.CTkEntry(ctrl, placeholder_text="🔍 Search rules...", width=350, height=35, 
                      textvariable=self.search_var).pack(side="left", padx=(0, 10))
 
-        # Action Buttons (Đã bỏ xử lý trung gian)
-        for txt, color, stat in [("ON", "#28A745", "test"), ("OFF", "#FF3B30", "disabled")]:
+        # Nút bấm: ON ghi 'test', OFF ghi 'deprecated'
+        for txt, color, stat in [("ON", "#28A745", "test"), ("OFF", "#FF3B30", "deprecated")]:
             ctk.CTkButton(ctrl, text=txt, width=50, height=35, fg_color=color, font=("Segoe UI", 11, "bold"),
                           command=lambda s=stat: self.set_status(s)).pack(side="left", padx=2)
 
         ctk.CTkButton(ctrl, text="DELETE", width=70, height=35, fg_color="#6C757D", font=("Segoe UI", 11, "bold"),
                       command=self.delete_rule_fully).pack(side="left", padx=(10, 0))
 
-        # Treeview
         self.drop_frame = ctk.CTkFrame(container, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB")
         self.tree = ttk.Treeview(self.drop_frame, columns=("Status", "Title"), show="headings", height=5)
         for col, w in [("Status", 70), ("Title", 430)]:
@@ -57,7 +55,6 @@ class RuleManagerFrame(ctk.CTkFrame):
                 with open(path, 'r', encoding='utf-8') as f:
                     rule_id = yaml.safe_load(f).get('id')
 
-                # SIEM API Call
                 res = requests.delete(f"{host}/api/detection_engine/rules?rule_id={rule_id}", 
                                       auth=(user, pwd), headers={"kbn-xsrf": "true"}, verify=False, timeout=10)
                 
@@ -91,8 +88,8 @@ class RuleManagerFrame(ctk.CTkFrame):
                     try:
                         with open(p, 'r', encoding='utf-8') as file:
                             data = yaml.safe_load(file)
-                            # Hiển thị trực tiếp status từ file
-                            st = 'OFF' if str(data.get('status')).lower() == 'disabled' else 'ON'
+                            # Hiển thị OFF nếu status là deprecated
+                            st = 'OFF' if str(data.get('status')).lower() == 'deprecated' else 'ON'
                             self.all_rules.append({"path": p, "file": f, "status": st, "title": data.get('title', 'N/A')})
                     except: pass
 
@@ -107,7 +104,7 @@ class RuleManagerFrame(ctk.CTkFrame):
         else: self.drop_frame.pack_forget()
 
     def set_status(self, new_status):
-        """Ghi trực tiếp trạng thái (test/disabled) vào file YAML"""
+        """Ghi trạng thái Sigma chuẩn: test (ON) hoặc deprecated (OFF)"""
         for item in self.tree.selection():
             path = self.tree.item(item, "tags")[0]
             try:
@@ -118,7 +115,7 @@ class RuleManagerFrame(ctk.CTkFrame):
                 with open(path, 'w', encoding='utf-8') as f:
                     yaml.dump(data, f, allow_unicode=True, sort_keys=False)
                 
-                disp = 'OFF' if new_status == 'disabled' else 'ON'
+                disp = 'OFF' if new_status == 'deprecated' else 'ON'
                 self.tree.set(item, column="Status", value=disp)
                 for r in self.all_rules:
                     if r['path'] == path: r['status'] = disp
