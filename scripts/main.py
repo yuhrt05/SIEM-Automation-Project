@@ -37,7 +37,7 @@ class SOCXCommand(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("⚡SOC GUI⚡")
+        self.title("SOC GUI")
         self.geometry("1100x900") 
 
         self.monitor_system = AlertMonitor()
