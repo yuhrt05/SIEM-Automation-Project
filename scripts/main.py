@@ -14,8 +14,6 @@ from datetime import datetime
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
-# Import lớp từ file en_dis.py và AlertMonitor
-
 from alert import AlertMonitor
 from manager_rule import RuleManagerFrame 
 
@@ -130,7 +128,7 @@ class SOCXCommand(ctk.CTk):
         
         self.write_log("SOC Manager System: Ready.")
 
-        # --- RULE MANAGER CARD (TÍCH HỢP LỚP MỚI) ---
+        # --- RULE MANAGER ---
         self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
         self.rule_manager.pack(fill="x", padx=40, pady=10)
 
