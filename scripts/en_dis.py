@@ -24,23 +24,23 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.search_var.trace_add("write", self._filter_logic)
         
         self.entry = ctk.CTkEntry(self.ctrl_row, placeholder_text="🔍 Type to search rule...", 
-                                  width=300, height=35, textvariable=self.search_var, border_width=1)
+                                  width=350, height=35, textvariable=self.search_var, border_width=1)
         self.entry.pack(side="left", padx=(0, 10))
 
-        # Nút Trạng thái
+        # Nút Bật/Tắt trạng thái
         ctk.CTkButton(self.ctrl_row, text="ON", width=50, height=35, fg_color="#28A745", 
                       font=("Segoe UI", 11, "bold"), command=lambda: self.set_status("test")).pack(side="left", padx=2)
         
         ctk.CTkButton(self.ctrl_row, text="OFF", width=50, height=35, fg_color="#FF3B30", 
                       font=("Segoe UI", 11, "bold"), command=lambda: self.set_status("disabled")).pack(side="left", padx=2)
 
-        # NÚT DELETE (Mới thêm)
+        # NÚT DELETE TRIỆT ĐỂ (Xoá SIEM + Local)
         self.btn_delete = ctk.CTkButton(self.ctrl_row, text="DELETE", width=70, height=35, 
                                         fg_color="#6C757D", hover_color="#5A6268",
                                         font=("Segoe UI", 11, "bold"), command=self.delete_rule_fully)
         self.btn_delete.pack(side="left", padx=(10, 0))
 
-        # --- DROP FRAME ---
+        # --- DANH SÁCH RULE (TREEVIEW) ---
         self.drop_frame = ctk.CTkFrame(self.container, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB")
         
         style = ttk.Style()
@@ -53,62 +53,52 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.tree.pack(fill="both", expand=True, padx=2, pady=2)
 
     def delete_rule_fully(self):
-        """Xóa triệt để trên cả SIEM và Local Repo"""
+        """Xoá sạch dấu vết trên SIEM và Local Repo"""
         selected = self.tree.selection()
         if not selected: return
 
-        if not messagebox.askyesno("Confirm Delete", "Bạn có chắc chắn muốn xóa vĩnh viễn Rule này trên cả SIEM và Repo?"):
+        if not messagebox.askyesno("Xác nhận", "Xóa vĩnh viễn Rule này trên cả SIEM và Repo?"):
             return
+
+        # Lấy cấu hình từ file .env
+        host = os.getenv('ELASTIC_HOST') # Đã khớp với biến trong hình của bạn
+        user = os.getenv('ELASTIC_USER')
+        password = os.getenv('ELASTIC_PASS')
 
         for item in selected:
             path = self.tree.item(item, "tags")[0]
             try:
-                # 1. Lấy ID từ file YAML để gọi API
+                # 1. Lấy ID Rule để gọi API
                 with open(path, 'r', encoding='utf-8') as f:
                     data = yaml.safe_load(f)
                     rule_id = data.get('id')
 
-                # 2. Gọi API DELETE của Kibana
-                if rule_id:
-                    url = f"{os.getenv('ELASTIC_URL')}/api/detection_engine/rules?rule_id={rule_id}"
-                    auth = (os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS'))
+                # 2. Xóa trên SIEM qua API Kibana
+                if rule_id and host:
+                    url = f"{host}/api/detection_engine/rules?rule_id={rule_id}"
                     headers = {"kbn-xsrf": "true"}
                     
-                    res = requests.delete(url, auth=auth, headers=headers, verify=False)
+                    # Gọi lệnh xóa (Verify=False nếu dùng SSL tự ký)
+                    res = requests.delete(url, auth=(user, password), headers=headers, verify=False)
+                    
                     if res.status_code == 200:
-                        self.log_func(f"[+] SIEM: Deleted Rule ID {rule_id}")
+                        self.log_func(f"[+] SIEM: Đã gỡ bỏ Rule ID {rule_id}")
                     else:
-                        self.log_func(f"[-] SIEM: Rule not found or API Error ({res.status_code})")
+                        self.log_func(f"[-] SIEM: Lỗi {res.status_code} (Rule có thể không tồn tại)")
 
-                # 3. Xóa file vật lý
+                # 3. Xóa file vật lý ở máy Local
                 if os.path.exists(path):
                     os.remove(path)
-                    self.log_func(f"[+] REPO: Deleted {os.path.basename(path)}")
+                    self.log_func(f"[+] REPO: Đã xóa file {os.path.basename(path)}")
                 
-                # 4. Xóa khỏi giao diện
+                # 4. Xóa khỏi giao diện GUI
                 self.tree.delete(item)
 
             except Exception as e:
-                self.log_func(f"ERR DELETING: {e}")
+                self.log_func(f"[-] Lỗi hệ thống khi xóa: {e}")
         
         self.load_rules()
-        self.log_func("[!] SYNC COMPLETE: Please Git Push to update GitHub.")
-
-    def _filter_logic(self, *args):
-        term = self.search_var.get().lower().strip()
-        if not term:
-            self.drop_frame.pack_forget()
-            return
-
-        results = [r for r in self.all_rules if term in r['file'].lower() or term in r['title'].lower()]
-        
-        if results:
-            for item in self.tree.get_children(): self.tree.delete(item)
-            for r in results:
-                self.tree.insert("", "end", values=(r['status'], r['title']), tags=(r['path'],))
-            self.drop_frame.pack(fill="x", pady=(5, 0))
-        else:
-            self.drop_frame.pack_forget()
+        self.log_func("[!] ĐỒNG BỘ HOÀN TẤT: Nhấn Git Push để cập nhật lên GitHub.")
 
     def load_rules(self):
         self.all_rules = []
@@ -125,6 +115,19 @@ class RuleManagerFrame(ctk.CTkFrame):
                             disp = 'OFF' if status in ['disabled', 'deprecated'] else 'ON'
                             self.all_rules.append({"path": path, "file": file, "status": disp, "title": data.get('title', 'N/A')})
                     except: pass
+
+    def _filter_logic(self, *args):
+        term = self.search_var.get().lower().strip()
+        if not term:
+            self.drop_frame.pack_forget()
+            return
+        results = [r for r in self.all_rules if term in r['file'].lower() or term in r['title'].lower()]
+        if results:
+            for item in self.tree.get_children(): self.tree.delete(item)
+            for r in results:
+                self.tree.insert("", "end", values=(r['status'], r['title']), tags=(r['path'],))
+            self.drop_frame.pack(fill="x", pady=(5, 0))
+        else: self.drop_frame.pack_forget()
 
     def set_status(self, new_status):
         selected = self.tree.selection()
