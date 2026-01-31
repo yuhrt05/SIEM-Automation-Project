@@ -143,7 +143,7 @@ class SOCXCommand(ctk.CTk):
                                                progress_color=COLOR_ACCENT,
                                                fg_color=COLOR_BORDER)
             self.progress.pack(pady=10, padx=25, fill="x")
-        self.progress.start()  # Indeterminate mode (animation chạy mãi)
+        self.progress.start() 
         self.progress.pack()   # Đảm bảo hiện
 
     def _hide_progress(self):

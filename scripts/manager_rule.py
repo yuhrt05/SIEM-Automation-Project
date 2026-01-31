@@ -78,7 +78,7 @@ class RuleManagerFrame(ctk.CTkFrame):
 
         def _delete_task():
             try:
-                # 1. Thu thập Rule IDs
+                # 1. Thu thập dữ liệu IDs và thông tin Mapping
                 targets = [os.path.join(r, f) for r, _, fs in os.walk(path) for f in fs if f.endswith(('.yml','.yaml'))] if mode == "Folder Mode" else [path]
                 payload = []
                 for p in targets:
@@ -90,22 +90,33 @@ class RuleManagerFrame(ctk.CTkFrame):
 
                 if not payload: return self.log_func("[-] No valid Rule IDs found.")
 
-                # 2. Xóa hàng loạt trên SIEM (Bulk API)
+                # 2. Thực thi Bulk Delete trên SIEM
                 env = {k: os.getenv(k) for k in ['ELASTIC_HOST2', 'ELASTIC_USER', 'ELASTIC_PASS']}
                 res = requests.post(f"{env['ELASTIC_HOST2']}/api/detection_engine/rules/_bulk_delete",
                                     auth=(env['ELASTIC_USER'], env['ELASTIC_PASS']),
-                                    headers={"kbn-xsrf": "true"}, json=payload, verify=False, timeout=15)
+                                    headers={"kbn-xsrf": "true", "Content-Type": "application/json"}, 
+                                    json=payload, verify=False, timeout=20)
 
+                # 3. Phân tích kết quả trả về từ SIEM
                 if res.status_code == 200:
-                    # 3. Xử lý Local & Git
-                    dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
-                    shutil.move(path, dest)
-                    for cmd in [["git", "add", "."], ["git", "commit", "-m", f"SOC-GUI: Bulk Deleted {len(payload)} rules"], ["git", "push"]]:
-                        subprocess.run(cmd, capture_output=True, check=True)
-                    self.log_func(f"SUCCESS: {len(payload)} rules removed.")
+                    data = res.json()
+                    # Elastic Bulk API trả về mảng kết quả, ta kiểm tra nếu có lỗi lẻ tẻ bên trong
+                    errors = [item for item in data if "error" in item]
+                    
+                    if not errors:
+                        # Xóa thành công tuyệt đối -> Xử lý Local & Git
+                        dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
+                        if os.path.exists(dest): shutil.rmtree(dest) if os.path.isdir(dest) else os.remove(dest)
+                        shutil.move(path, dest)
+                        
+                        for cmd in [["git", "add", "."], ["git", "commit", "-m", f"SOC-GUI: Bulk Deleted {len(payload)} rules"], ["git", "push"]]:
+                            subprocess.run(cmd, capture_output=True, check=True)
+                        self.log_func(f"SUCCESS: {len(payload)} rules removed from SIEM & Sync Git.")
+                    else:
+                        self.log_func(f"[-] Partial success: {len(payload)-len(errors)} deleted, {len(errors)} failed.")
                 else:
-                    self.log_func(f"[-] SIEM Error: {res.status_code} - {res.text}")
-            except Exception as e: self.log_func(f"[-] Error: {e}")
+                    self.log_func(f"[-] SIEM Error {res.status_code}: {res.text[:100]}")
+            except Exception as e: self.log_func(f"[-] Critical Error: {e}")
             finally: self.after(0, self.load_rules)
 
         threading.Thread(target=_delete_task, daemon=True).start()
@@ -141,6 +152,7 @@ class RuleManagerFrame(ctk.CTkFrame):
         self._filter()
 
     def set_status(self, status):
+        # Giữ nguyên logic cập nhật trạng thái
         for item in self.tree.selection():
             path = self.tree.item(item, "tags")[0]
             if os.path.isdir(path): continue
