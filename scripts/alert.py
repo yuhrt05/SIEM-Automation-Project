@@ -35,7 +35,7 @@ class AlertMonitor:
         while self.running:
             try:
                 query = {
-                    "size": 500, # Tăng size để gom nhóm được nhiều hơn trong một đợt tấn công mạnh
+                    "size": 500, # Tăng size để gom nhóm được nhiều hơn
                     "query": {
                         "bool": {
                             "must": [{"range": {"@timestamp": {"gt": self.last_checkpoint}}}]
@@ -61,7 +61,6 @@ class AlertMonitor:
                                     _src.get('winlog', {}).get('user', {}).get('name') or "Unknown"
                         
                         # 2. Xử lý Bằng chứng động (Dynamic Evidence)
-                        # Ưu tiên: PowerShell > Command Line > IP Nguồn (cho Logon) > Original Log
                         evidence = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
                                    _src.get('process', {}).get('command_line') or \
                                    _src.get('source', {}).get('ip') or \
@@ -134,7 +133,7 @@ class AlertMonitor:
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
 
-            # Sleep thông minh
+            # Sleep
             for _ in range(10):
                 if not self.running: break
                 time.sleep(1)

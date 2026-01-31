@@ -23,7 +23,7 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.search_var = ctk.StringVar()
         self.search_var.trace_add("write", self._filter_logic)
         
-        self.search_entry = ctk.CTkEntry(ctrl_top, placeholder_text="🔍 Search rules...", width=320, height=35, textvariable=self.search_var)
+        self.search_entry = ctk.CTkEntry(ctrl_top, placeholder_text="Search rules...", width=320, height=35, textvariable=self.search_var)
         self.search_entry.pack(side="left", padx=(0, 10))
 
         self.delete_mode = ctk.StringVar(value="File Mode")
@@ -52,7 +52,7 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.tree.pack(fill="both", expand=True, padx=2, pady=2)
 
     def _on_mode_change(self, mode):
-        self.search_entry.configure(placeholder_text=f"🔍 Search by {mode.split()[0]} name...")
+        self.search_entry.configure(placeholder_text=f"Search by {mode.split()[0]} name...")
         self.search_var.set(""); self.drop_frame.pack_forget()
 
     def _filter_logic(self, *args):
