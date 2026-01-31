@@ -49,6 +49,9 @@ class SOCXCommand(ctk.CTk):
         # Biến quản lý Placeholder
         self.placeholder_msg = "ENTER COMMIT MSG HERE..."
 
+        # Biến cho Progress Bar
+        self.progress = None
+
         self._init_ui()
         
         # Khởi chạy luồng cập nhật CPU/RAM
@@ -132,6 +135,22 @@ class SOCXCommand(ctk.CTk):
         self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
         self.rule_manager.pack(fill="x", padx=40, pady=10)
 
+    # --- PROGRESS BAR HELPERS ---
+    def _show_progress(self):
+        if self.progress is None:
+            self.progress = ctk.CTkProgressBar(self.sidebar, 
+                                               width=200, height=12,
+                                               progress_color=COLOR_ACCENT,
+                                               fg_color=COLOR_BORDER)
+            self.progress.pack(pady=10, padx=25, fill="x")
+        self.progress.start()  # Indeterminate mode (animation chạy mãi)
+        self.progress.pack()   # Đảm bảo hiện
+
+    def _hide_progress(self):
+        if self.progress:
+            self.progress.stop()
+            self.progress.pack_forget()
+
     # --- PLACEHOLDER LOGIC ---
     def _on_focus_in(self, event):
         if self.commit_input.get() == self.placeholder_msg:
@@ -193,10 +212,12 @@ class SOCXCommand(ctk.CTk):
             time.sleep(1)
 
     def start_deploy_thread(self):
-        if self.selected_path: threading.Thread(target=self.run_deploy, daemon=True).start()
+        if self.selected_path:
+            self._show_progress()
+            self.btn_deploy.configure(state="disabled", text="LOADING...")
+            threading.Thread(target=self.run_deploy, daemon=True).start()
 
     def run_deploy(self):
-        self.btn_deploy.configure(state="disabled", text="PROCESSING...")
         try:
             target = os.path.join(self.RULES_DIR, os.path.basename(self.selected_path))
             count = 0
@@ -207,7 +228,8 @@ class SOCXCommand(ctk.CTk):
                             rel = os.path.relpath(root, self.selected_path)
                             dest = os.path.join(target, rel)
                             if not os.path.exists(dest): os.makedirs(dest)
-                            shutil.copy(os.path.join(root, file), dest); count += 1
+                            shutil.copy(os.path.join(root, file), dest)
+                            count += 1
                 self.write_log(f"SUCCESS: {count} rules ingested.")
                 self.rule_manager.load_rules() 
             else:
@@ -215,8 +237,11 @@ class SOCXCommand(ctk.CTk):
                 shutil.copy(self.selected_path, self.RULES_DIR)
                 self.write_log("UNIT SUCCESS: File ingested.")
                 self.rule_manager.load_rules()
-        except Exception as e: self.write_log(f"ERROR: {str(e)}")
-        finally: self.btn_deploy.configure(state="normal", text="LOAD RULE")
+        except Exception as e:
+            self.write_log(f"ERROR: {str(e)}")
+        finally:
+            self._hide_progress()
+            self.btn_deploy.configure(state="normal", text="LOAD RULE")
 
     def run_git_push(self):
         msg = self.commit_input.get()
@@ -228,6 +253,9 @@ class SOCXCommand(ctk.CTk):
 
     def _git_task(self, msg):
         try:
+            self._show_progress()
+            self.btn_push.configure(state="disabled", text="SYNCING...")
+            
             self.write_log("PATCHING METADATA & STATUS MAP...")
             subprocess.run(["python", "scripts/deploy_to_kibana.py"], check=True, capture_output=True)
             
@@ -237,7 +265,11 @@ class SOCXCommand(ctk.CTk):
             self.write_log("CLOUD SYNC COMPLETE.")
             self.commit_input.delete(0, 'end')
             self._on_focus_out(None)
-        except Exception as e: self.write_log(f"GIT ERR: {str(e)}")
+        except Exception as e:
+            self.write_log(f"GIT ERR: {str(e)}")
+        finally:
+            self._hide_progress()
+            self.btn_push.configure(state="normal", text="GIT PUSH")
 
     def _side_btn(self, text, color, cmd):
         btn = ctk.CTkButton(self.sidebar, text=text, fg_color="transparent", text_color=COLOR_TEXT_DARK, border_width=1, border_color=COLOR_BORDER, hover_color="#F0F2F5", font=("Segoe UI", 12, "bold"), height=55, command=cmd)
