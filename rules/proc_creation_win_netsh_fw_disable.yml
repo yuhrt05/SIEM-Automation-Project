@@ -38,3 +38,5 @@ detection:
 falsepositives:
     - Legitimate administration activity
 level: medium
+
+##
