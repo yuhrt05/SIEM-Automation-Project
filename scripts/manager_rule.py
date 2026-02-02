@@ -7,12 +7,28 @@ class RuleManagerFrame(ctk.CTkFrame):
         super().__init__(parent, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB", corner_radius=12)
         self.rules_dir = rules_dir
         self.log_func = log_func
+        self.env_name, self.space_id = self._detect_environment()
+        self.log_func(f"[*] Rule Manager Active: {self.env_name} (Space: {self.space_id})") 
         self.trash_dir = "trash"
         os.makedirs(self.trash_dir, exist_ok=True)
         self.all_rules = []
         self._build_ui()
         self.load_rules()
 
+    def _detect_environment(self):
+        try:
+            branch = subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"], 
+                stderr=subprocess.STDOUT
+            ).decode().strip()
+        except Exception:
+                branch = "dev"
+            
+        if branch == "main":
+                return "main", "default"
+        else:
+                return branch, "detection-dev"
+                
     def _build_ui(self):
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="x", padx=10, pady=10)
@@ -77,8 +93,13 @@ class RuleManagerFrame(ctk.CTkFrame):
         self.log_func(f"[*] Bulk Deleting {mode}: {name}...")
 
         def _delete_task():
+            current_branch, space_id = self._detect_environment()
+            self.log_func(f"[*] Detected Branch: {current_branch.upper()} -> Target Space: {space_id}")
             try:
                 # 1. Thu thập tất cả Rule IDs trong mục tiêu (File hoặc Folder)
+                host = os.getenv('ELASTIC_HOST2').rstrip('/')
+                api_url = f"{host}/api/detection_engine/rules/_bulk_delete" if space_id == "default" \
+                        else f"{host}/s/{space_id}/api/detection_engine/rules/_bulk_delete"
                 targets = []
                 if mode == "Folder Mode":
                     for r, _, fs in os.walk(path):
@@ -131,9 +152,10 @@ class RuleManagerFrame(ctk.CTkFrame):
                     
                     # Đồng bộ Git
                     try:
-                        subprocess.run(["git", "add", "."], capture_output=True, check=True)
-                        subprocess.run(["git", "commit", "-m", f"SOC-GUI: Bulk Deleted {mode} {name}"], capture_output=True, check=True)
-                        subprocess.run(["git", "push"], capture_output=True, check=True)
+                        subprocess.run(["git", "add", "."], check=True)
+                        msg = f"SOC-GUI: Bulk Deleted {mode} {name} (Env: {current_branch})"
+                        subprocess.run(["git", "commit", "-m", msg], check=True)
+                        subprocess.run(["git", "push", "origin", current_branch], check=True)
                         self.log_func(f"SUCCESS: {len(payload_full)} rules removed and Git synced.")
                     except subprocess.CalledProcessError as ge:
                         self.log_func(f"[!] SIEM OK, but Git Error: {ge}")

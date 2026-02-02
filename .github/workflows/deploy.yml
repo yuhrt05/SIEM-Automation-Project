@@ -30,9 +30,9 @@ jobs:
       - name: Set Environment for Branch
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "KIBANA_SPACE=default" >> $GITHUB_ENV
+            echo "KIBANA_SPACE=${{ secrets.KIBANA_SPACE_PROD }}" >> $GITHUB_ENV
           else
-            echo "KIBANA_SPACE=detection-dev" >> $GITHUB_ENV
+            echo "KIBANA_SPACE=${{ secrets.KIBANA_SPACE_DEV }}" >> $GITHUB_ENV
           fi
 
       - name: Run Deploy Script

@@ -4,21 +4,39 @@ import time, requests, urllib3, sys, logging
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
 from datetime import datetime, timezone
-
+from git import Repo
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 load_dotenv()
 
 class AlertMonitor:
     def __init__(self):
-        self.ELASTIC_HOST1 = os.getenv("ELASTIC_HOST1")
+        self.branch = self._get_current_branch()
+        print(f"[*] Detected Environment: {self.branch.upper()}")
+        self.ELASTIC_HOST1 = os.getenv("ELASTIC_HOST1") 
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
-        self.TOKEN = os.getenv("TELEGRAM_TOKEN")
-        self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-        self.INDEX = ".internal.alerts-security.alerts-detection-dev-000001"
+        if self.branch == "main":
+            self.INDEX = os.getenv("INDEX_PROD")
+            self.TOKEN = os.getenv("TELEGRAM_TOKEN")
+            self.CHAT_ID = os.getenv("CHAT_ID")
+        else:
+            self.INDEX = os.getenv("INDEX_DEV")
+            self.TOKEN = os.getenv("TELEGRAM_TOKEN")
+            self.CHAT_ID = os.getenv("CHAT_ID")
+            self.ENV_LABEL = "DEV"
+        
         self.es = Elasticsearch(self.ELASTIC_HOST1, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    def _get_current_branch(self):
+        try:
+            branch = subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                stderr=subprocess.STDOUT
+            ).decode().strip()
+            return branch
+        except Exception:
+            return "dev"
 
     def send_telegram(self, msg):
         try:
@@ -136,5 +154,3 @@ class AlertMonitor:
             for _ in range(10):
                 if not self.running: break
                 time.sleep(1)
-
-##
