@@ -1,10 +1,10 @@
 import os
+import subprocess
 from dotenv import load_dotenv
 import time, requests, urllib3, sys, logging
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
 from datetime import datetime, timezone
-from git import Repo
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 load_dotenv()
@@ -28,13 +28,10 @@ class AlertMonitor:
         self.es = Elasticsearch(self.ELASTIC_HOST1, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
     def _get_current_branch(self):
         try:
-            branch = subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                stderr=subprocess.STDOUT
-            ).decode().strip()
-            return branch
+            return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
         except Exception:
             return "dev"
 
