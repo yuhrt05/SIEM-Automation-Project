@@ -15,8 +15,7 @@ class AlertMonitor:
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
         self.TOKEN = os.getenv("TELEGRAM_TOKEN")
         self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-        self.INDEX = ".internal.alerts-security.alerts-default-000001"
-        
+        self.INDEX = ".internal.alerts-security.alerts-detection-dev-000001"
         self.es = Elasticsearch(self.ELASTIC_HOST1, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

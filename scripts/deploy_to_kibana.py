@@ -6,7 +6,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 URL = os.getenv('ELASTIC_URL') 
 USER = os.getenv('ELASTIC_USERNAME')
 PASS = os.getenv('ELASTIC_PASSWORD')
-SPACE_ID = os.getenv('KIBANA_SPACE', 'default')
+SPACE_ID = os.getenv('KIBANA_SPACE', 'detection-dev')
 
 RULES_INPUT = 'rules/'
 NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
@@ -75,7 +75,7 @@ def deploy():
     patch_ndjson(dep_ids)
 
     # 4. API Upload
-    api = f"{URL}{'' if SPACE_ID == 'default' else f'/s/{SPACE_ID}'}/api/detection_engine/rules/_import"
+    api = f"{URL}{'' if SPACE_ID == 'detection-dev' else f'/s/{SPACE_ID}'}/api/detection_engine/rules/_import"
     print(f"[*] Deploying to Space [{SPACE_ID}]...")
     
     try:
