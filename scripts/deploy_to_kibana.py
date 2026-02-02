@@ -75,7 +75,7 @@ def deploy():
     patch_ndjson(dep_ids)
 
     # 4. API Upload
-    api = f"{URL}{'' if SPACE_ID == 'detection-dev' else f'/s/{SPACE_ID}'}/api/detection_engine/rules/_import"
+    api = f"{URL}{'' if SPACE_ID == 'default' else f'/s/{SPACE_ID}'}/api/detection_engine/rules/_import"
     print(f"[*] Deploying to Space [{SPACE_ID}]...")
     
     try:
