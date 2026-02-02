@@ -6,7 +6,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 URL = os.getenv('ELASTIC_URL') 
 USER = os.getenv('ELASTIC_USERNAME')
 PASS = os.getenv('ELASTIC_PASSWORD')
-SPACE_ID = os.getenv('KIBANA_SPACE', 'default')
+SPACE_ID = os.getenv('KIBANA_SPACE')
 
 RULES_INPUT = 'rules/'
 NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
