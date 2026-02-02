@@ -94,7 +94,14 @@ class RuleManagerFrame(ctk.CTkFrame):
 
         def _delete_task():
             current_branch, space_id = self._detect_environment()
-            self.log_func(f"[*] Detected Branch: {current_branch.upper()} -> Target Space: {space_id}")
+            host = os.getenv('ELASTIC_HOST2').rstrip('/')
+            
+            if space_id == "default":
+                api_endpoint = f"{host}/api/detection_engine/rules/_bulk_delete"
+            else:
+                api_endpoint = f"{host}/s/{space_id}/api/detection_engine/rules/_bulk_delete"
+
+            self.log_func(f"[*] Target Branch: {current_branch.upper()} | Space: {space_id}")
             try:
                 # 1. Thu thập tất cả Rule IDs trong mục tiêu (File hoặc Folder)
                 host = os.getenv('ELASTIC_HOST2').rstrip('/')
@@ -126,14 +133,17 @@ class RuleManagerFrame(ctk.CTkFrame):
                 
                 env = {k: os.getenv(k) for k in ['ELASTIC_HOST2', 'ELASTIC_USER', 'ELASTIC_PASS']}
                 self.log_func(f"[*] Processing {len(payload_full)} rules in {len(chunks)} batches...")
-
                 success_on_siem = True
                 for idx, chunk in enumerate(chunks):
                     # Tăng timeout lên 60s cho mỗi đợt gửi
-                    res = requests.post(f"{env['ELASTIC_HOST2']}/api/detection_engine/rules/_bulk_delete",
-                                        auth=(env['ELASTIC_USER'], env['ELASTIC_PASS']),
-                                        headers={"kbn-xsrf": "true", "Content-Type": "application/json"}, 
-                                        json=chunk, verify=False, timeout=60)
+                    res = requests.post(
+                        api_endpoint,
+                        auth=(os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')),
+                        headers={"kbn-xsrf": "true", "Content-Type": "application/json"},
+                        json=chunk,
+                        verify=False,
+                        timeout=60
+                    )
                     
                     if res.status_code != 200:
                         self.log_func(f"[-] Batch {idx+1} failed (HTTP {res.status_code}). Aborting.")
