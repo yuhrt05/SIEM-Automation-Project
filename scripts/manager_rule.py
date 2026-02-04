@@ -182,7 +182,6 @@ class RuleManagerFrame(ctk.CTkFrame):
         
     def sync_audit(self):
         def _task():
-            self.log_func("[*] Đang đối soát Repo vs Kibana...")
             _, space_id = self._detect_environment()
             host = os.getenv('ELASTIC_HOST2', '').rstrip('/')
             api = f"{host}{'' if space_id == 'default' else f'/s/{space_id}'}/api/detection_engine/rules/_find"
@@ -204,11 +203,8 @@ class RuleManagerFrame(ctk.CTkFrame):
                 # 3. So khớp
                 only_in_repo = repo_ids - kibana_ids
                 only_in_kibana = kibana_ids - repo_ids
-
-                # 4. Hiển thị kết quả ngắn gọn
-                self.log_func(f"--- KẾT QUẢ ĐỐI SOÁT ---")
                 if not only_in_repo and not only_in_kibana:
-                    self.log_func("[+] Hoàn hảo: Repo và Kibana đồng bộ 100%.")
+                    self.log_func("[+] Repo và Kibana đồng bộ 100%")
                 else:
                     if only_in_repo:
                         self.log_func(f"[!] Lệch ({len(only_in_repo)}): Có ở Repo nhưng chưa có trên Kibana:")
