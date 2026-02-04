@@ -50,6 +50,7 @@ class RuleManagerFrame(ctk.CTkFrame):
                           command=lambda s=status: self.set_status(s)).pack(side="left", padx=2)
         ctk.CTkButton(bot, text="DELETE", width=80, height=35, fg_color="#6C757D", font=("Segoe UI", 11, "bold"), command=self.delete).pack(side="left", padx=(10, 5))
         ctk.CTkButton(bot, text="RESTORE", width=80, height=35, fg_color="transparent", border_width=1, text_color="#65676B", font=("Segoe UI", 11, "bold"), command=self.restore).pack(side="left")
+        ctk.CTkButton(bot, text="SYNC AUDIT", width=100, height=35, fg_color="#007AFF", font=("Segoe UI", 11, "bold"), command=self.sync_audit).pack(side="left", padx=10)
 
         # Treeview
         self.drop = ctk.CTkFrame(container, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB")
@@ -178,6 +179,49 @@ class RuleManagerFrame(ctk.CTkFrame):
                 self.after(0, self.load_rules)
 
         threading.Thread(target=_delete_task, daemon=True).start()
+        
+    def sync_audit(self):
+        def _task():
+            self.log_func("[*] Đang đối soát Repo vs Kibana...")
+            _, space_id = self._detect_environment()
+            host = os.getenv('ELASTIC_HOST2', '').rstrip('/')
+            api = f"{host}{'' if space_id == 'default' else f'/s/{space_id}'}/api/detection_engine/rules/_find"
+            
+            try:
+                # 1. Lấy Rule IDs từ Kibana (mặc định lấy 1000 rules)
+                res = requests.get(api, auth=(os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')),
+                                   headers={"kbn-xsrf": "true"}, params={"per_page": 1000}, verify=False, timeout=20)
+                kibana_ids = {r['rule_id'] for r in res.json().get('data', [])}
+
+                # 2. Lấy Rule IDs từ Repo Local
+                repo_map = {} # {id: path}
+                for r in self.all_rules:
+                    with open(r['path'], encoding='utf-8') as f:
+                        rid = yaml.safe_load(f).get('id')
+                        if rid: repo_map[rid] = r['file']
+                repo_ids = set(repo_map.keys())
+
+                # 3. So khớp
+                only_in_repo = repo_ids - kibana_ids
+                only_in_kibana = kibana_ids - repo_ids
+
+                # 4. Hiển thị kết quả ngắn gọn
+                self.log_func(f"--- KẾT QUẢ ĐỐI SOÁT ---")
+                if not only_in_repo and not only_in_kibana:
+                    self.log_func("[+] Hoàn hảo: Repo và Kibana đồng bộ 100%.")
+                else:
+                    if only_in_repo:
+                        self.log_func(f"[!] Lệch ({len(only_in_repo)}): Có ở Repo nhưng chưa có trên Kibana:")
+                        for rid in only_in_repo: self.log_func(f"  - {repo_map[rid]}")
+                    
+                    if only_in_kibana:
+                        self.log_func(f"[!] Lệch ({len(only_in_kibana)}): Có trên Kibana nhưng đã mất trong Repo:")
+                        for rid in only_in_kibana: self.log_func(f"  - ID: {rid}")
+
+            except Exception as e:
+                self.log_func(f"[-] Lỗi đối soát: {e}")
+
+        threading.Thread(target=_task, daemon=True).start()
 
     def restore(self):
         mode = self.mode_var.get()
