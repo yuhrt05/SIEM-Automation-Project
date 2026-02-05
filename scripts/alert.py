@@ -116,7 +116,6 @@ class AlertMonitor:
                         severity_raw = _s.get('kibana.alert.rule.severity') or "low"
                         risk_score = _s.get('kibana.alert.rule.risk_score') or 0
 
-
                         # Logic hiển thị Icon & Label
                         icon = "🔴" if risk_score >= 70 else "🟡" if risk_score >= 40 else "🔵"
                         label = "HIGH" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
