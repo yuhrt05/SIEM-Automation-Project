@@ -13,22 +13,25 @@ class AlertMonitor:
     def __init__(self):
         self.branch = self._get_current_branch()
         print(f"[*] Detected Environment: {self.branch.upper()}")
-        self.ELASTIC_HOST1 = os.getenv("ELASTIC_HOST1") 
+
+        self.ELASTIC_HOST1 = os.getenv("ELASTIC_HOST1")
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
-        if self.branch == "main":
-            self.INDEX = os.getenv("INDEX_PROD")
-            self.TOKEN = os.getenv("TELEGRAM_TOKEN")
-            self.CHAT_ID = os.getenv("CHAT_ID")
-        else:
-            self.INDEX = os.getenv("INDEX_DEV")
-            self.TOKEN = os.getenv("TELEGRAM_TOKEN")
-            self.CHAT_ID = os.getenv("CHAT_ID")
-            self.ENV_LABEL = "DEV"
+        self.TOKEN = os.getenv("TELEGRAM_TOKEN")
+        self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
         
+        env_settings = {
+        "main": {"index": os.getenv("INDEX_PROD"), "label": "PROD"},
+        "dev":  {"index": os.getenv("INDEX_DEV"),  "label": "DEV"}
+        }
+
+        current_config = env_settings.get(self.branch, env_settings["dev"])
+        self.INDEX = current_config["index"]
+        self.ENV_LABEL = current_config["label"]
+
         self.es = Elasticsearch(self.ELASTIC_HOST1, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-
+        
     def _get_current_branch(self):
         try:
             return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
