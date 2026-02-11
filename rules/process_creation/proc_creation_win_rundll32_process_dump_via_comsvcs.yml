@@ -56,4 +56,3 @@ detection:
 falsepositives:
     - Unlikely
 level: high
-###

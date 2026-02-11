@@ -19,14 +19,12 @@ def get_sigma_path():
     return f'"{sigma_exe}"' if os.path.exists(sigma_exe) else "sigma"
 
 def process_rules():
-    """Inject Metadata and identify deprecated rules"""
     print("[*] Processing rules and metadata...")
     deprecated_ids = []
     
     for root, _, files in os.walk(RULES_INPUT):
         for file in files:
             if not file.endswith(('.yml', '.yaml')): continue
-            
             path = os.path.join(root, file)
             try:
                 with open(path, 'r', encoding='utf-8') as f:
@@ -43,32 +41,27 @@ def process_rules():
     return deprecated_ids
 
 def patch_ndjson(deprecated_ids):
-    """
-    Force 'enabled: false' for deprecated rules 
-    AND Patch 'interval: 1m', 'from: now-120s' for ALL rules
-    """
     print(f"[*] Patching NDJSON for real-time monitoring (interval: 1m)...")
     
     if not os.path.exists(NDJSON_OUTPUT):
         print("[-] NDJSON file not found to patch.")
         return
-
-    with open(NDJSON_OUTPUT, 'r', encoding='utf-8') as f:
-        # Đọc từng dòng vì NDJSON mỗi dòng là một object JSON
-        lines = [json.loads(line) for line in f if line.strip()]
+    patched_lines = []
     
+    with open(NDJSON_OUTPUT, 'r', encoding='utf-8') as f:
+        lines = [json.loads(line) for line in f if line.strip()]
     for rule in lines:
-        # 1. Vá quan trọng: Giảm độ trễ từ 5m xuống 1m
+        # 1. Vá: Giảm độ trễ từ 5m xuống 1m
         rule['interval'] = "1m"
         rule['from'] = "now-120s"
         
         # 2. Xử lý deprecated rules
         if rule.get('rule_id') in deprecated_ids:
             rule['enabled'] = False
-            
+        
+        patched_lines.append(json.dumps(rule))
     with open(NDJSON_OUTPUT, 'w', encoding='utf-8') as f:
-        # Ghi lại định dạng NDJSON (mỗi object trên một dòng)
-        f.write('\n'.join(json.dumps(l) for l in lines) + '\n')
+        f.write('\n'.join(patched_lines) + '\n')
     print("[+] Patching completed successfully.")
 
 def deploy():
@@ -83,9 +76,8 @@ def deploy():
         print("[-] Conversion failed.")
         return
 
-    # 3. Patch Status & Performance (Đây là bước "vá" interval và enabled)
+    # 3. Patch Status & Performance 
     patch_ndjson(dep_ids)
-
     # 4. API Upload (Import vào Kibana)
     api = f"{URL}{'' if SPACE_ID == 'default' else f'/s/{SPACE_ID}'}/api/detection_engine/rules/_import"
     print(f"[*] Deploying to Space [{SPACE_ID}]...")
