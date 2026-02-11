@@ -47,7 +47,7 @@ def patch_ndjson(deprecated_ids):
         print("[-] NDJSON file not found to patch.")
         return
     patched_lines = []
-    
+
     with open(NDJSON_OUTPUT, 'r', encoding='utf-8') as f:
         lines = [json.loads(line) for line in f if line.strip()]
     for rule in lines:
@@ -96,3 +96,4 @@ def deploy():
 
 if __name__ == "__main__":
     deploy()
+#
