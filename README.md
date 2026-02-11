@@ -4,7 +4,7 @@
 
 Dự án này triển khai mô hình Detection-as-Code (DaC) nhằm tự động hóa quy trình quản lý, triển khai và giám sát các quy tắc phát hiện (Sigma Rules) trên nền tảng ELK Stack. Hệ thống sử dụng GitHub Actions để thiết lập CI/CD, kết hợp với một công cụ quản trị giao diện đồ họa (GUI) được viết bằng Python.
 
-![image](images/dac.png)
+![image](Diagram/Luồng hoạt động chi tiết.png)
 
 ## Tính năng chính
 
@@ -86,5 +86,3 @@ Hệ thống được chia thành 4 phân tầng chính:
      ```
     python main.py
      ```
-    
-![image](images/dac.png)
