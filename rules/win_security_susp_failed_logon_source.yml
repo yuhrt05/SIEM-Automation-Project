@@ -25,4 +25,3 @@ detection:
 falsepositives:
 - Legitimate logon attempts over the internet
 level: medium
-#
