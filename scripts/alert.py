@@ -4,6 +4,7 @@ import time
 import requests
 import urllib3
 import logging
+from collections import deque
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
@@ -37,6 +38,9 @@ class AlertMonitor:
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         
+        # Tạo bộ nhớ đệm lưu ID của 500 bản ghi gần nhất đã gửi
+        self.sent_alerts_cache = deque(maxlen=500)
+        
     def _get_current_branch(self):
         try:
             return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
@@ -57,31 +61,36 @@ class AlertMonitor:
         while self.running:
             try:
                 query = {
-                    "size": 500,
+                    "size": 1000,
                     "query": {
                         "bool": {
                             "must": [
                                 {
                                     "range": {
                                         "@timestamp": {
-                                            "gt": self.last_checkpoint 
+                                            "gte": self.last_checkpoint # Lấy từ mốc cũ
                                         }
                                     }
                                 }
                             ]
                         }
                     },
-                    "sort": [{"@timestamp": {"order": "asc"}}] # Sắp xếp tăng dần để cập nhật checkpoint dần dần
+                    "sort": [{"@timestamp": {"order": "asc"}}]
                 }
 
                 res = self.es.search(index=self.INDEX, body=query)
                 hits = res['hits']['hits']
 
                 if hits:
-                    # Dictionary để gom nhóm trong một đợt quét
                     aggregated_alerts = {}
 
                     for hit in hits:
+                        alert_id = hit['_id'] # Lấy ID duy nhất của document trong ES
+                        
+                        # Nếu ID này đã nằm trong danh sách đã gửi -> Bỏ qua
+                        if alert_id in self.sent_alerts_cache:
+                            continue
+                            
                         _src = hit['_source']
                         timestamp = _src['@timestamp']
                         
@@ -95,7 +104,7 @@ class AlertMonitor:
 
                         proc_name = _src.get('process', {}).get('name') or "N/A"
                         
-                        # Nếu cùng Rule, cùng User, cùng Evidence -> Gom lại
+                        # Fingerprint để gom nhóm những cái giống hệt nhau
                         fingerprint = f"{rule_name}|{user_name}|{evidence}"
 
                         if fingerprint not in aggregated_alerts:
@@ -106,14 +115,15 @@ class AlertMonitor:
                                 "evidence": evidence,
                                 "proc_name": proc_name,
                                 "user": user_name,
-                                "rule": rule_name
+                                "rule": rule_name,
+                                "ids": [alert_id] # Lưu danh sách ID để add vào cache sau khi gửi
                             }
                         else:
-                            # Nếu bị trùng trong cùng một lần quét, chỉ tăng biến đếm
                             aggregated_alerts[fingerprint]["count"] += 1
                             aggregated_alerts[fingerprint]["last_time"] = timestamp
+                            aggregated_alerts[fingerprint]["ids"].append(alert_id)
 
-                    # Gửi tin nhắn Telegram cho các cảnh báo đã gom nhóm
+                    # Gửi tin nhắn Telegram
                     for fp, alert in aggregated_alerts.items():
                         _s = alert["source"]
                         count = alert["count"]
@@ -124,7 +134,6 @@ class AlertMonitor:
                         label = "HIGH" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
                         local_time = parser.isoparse(alert["last_time"]).astimezone(tz.tzlocal()).strftime('%H:%M:%S')
 
-                        # Hiển thị (xN) nếu có nhiều alert giống hệt nhau
                         attempt_str = f" (x{count})" if count > 1 else ""
 
                         msg = (f"{icon} <b>{label} RISK ALERT{attempt_str}</b>\n"
@@ -139,10 +148,15 @@ class AlertMonitor:
                                f"━━━━━━━━━━━━━━━━━━━━━")
 
                         self.send_telegram(msg)
+                        
+                        # Sau khi gửi thành công, đưa các ID này vào Cache để lần sau không quét trùng
+                        for aid in alert["ids"]:
+                            self.sent_alerts_cache.append(aid)
                     
+                    # Cập nhật checkpoint
                     self.last_checkpoint = hits[-1]['_source']['@timestamp']
 
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
 
-            time.sleep(3) # Quét mỗi 3 giây
+            time.sleep(5)
