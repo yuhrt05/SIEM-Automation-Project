@@ -24,7 +24,7 @@ def process_rules():
     
     for root, _, files in os.walk(RULES_INPUT):
         for file in files:
-            if not file.endswith(('.yml', '.yaml')): continue
+            if not file.endswith(('.yml', '.yaml')): continue   
             path = os.path.join(root, file)
             try:
                 with open(path, 'r', encoding='utf-8') as f:

@@ -1,7 +1,7 @@
 import os
 import subprocess
 from dotenv import load_dotenv
-import time, requests, urllib3, sys, logging
+import time, requests, urllib3, sys, logging    
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
 from datetime import datetime, timezone
@@ -55,10 +55,11 @@ class AlertMonitor:
                     "size": 500, # Tăng size để gom nhóm được nhiều hơn
                     "query": {
                         "bool": {
-                            "must": [{"range": {"@timestamp": {"gt": self.last_checkpoint}}}]
+                            "must": [{"range": {"@timestamp": {"gte": "now-2m", "lte": "now"}}}
+                            ]
                         }
                     },
-                    "sort": [{"@timestamp": {"order": "asc"}}]
+                    "sort": [{"@timestamp": {"order": "desc"}}]
                 }
 
                 res = self.es.search(index=self.INDEX, body=query)
@@ -151,6 +152,6 @@ class AlertMonitor:
                 log_callback(f"[-] Error: {e}")
 
             # Sleep
-            for _ in range(10):
+            for _ in range(3):
                 if not self.running: break
                 time.sleep(1)
