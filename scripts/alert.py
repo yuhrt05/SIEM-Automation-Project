@@ -134,12 +134,12 @@ class AlertMonitor:
                         msg = (f"{icon} <b>{label} RISK ALERT{attempt_str}</b>\n"
                                f"Risk Score: <code>{risk_score}</code>\n"
                                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                               f"🕒 Time: <code>{local_time}</code> | 👤 User: <code>{alert['user']}</code>\n"
-                               f"📝 Rule: <i>{alert['rule']}</i>\n"
+                               f"- Time: <code>{local_time}</code> | - User: <code>{alert['user']}</code>\n"
+                               f"- Rule: <i>{alert['rule']}</i>\n"
                                f"─────────────────────\n"
-                               f"🔸 Parent: <code>{pp_name.upper()}</code>\n"
-                               f"🔸 Process: <code>{alert['proc_name'].upper()}</code>\n"
-                               f"🖥 Evidence:\n<code>{str(alert['evidence']).strip()[:500]}</code>\n"
+                               f"- Parent: <code>{pp_name.upper()}</code>\n"
+                               f"- Process: <code>{alert['proc_name'].upper()}</code>\n"
+                               f"- Evidence:\n<code>{str(alert['evidence']).strip()[:500]}</code>\n"
                                f"━━━━━━━━━━━━━━━━━━━━━")
 
                         self.send_telegram(msg)
