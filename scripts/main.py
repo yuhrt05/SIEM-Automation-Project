@@ -218,7 +218,7 @@ class SOCXCommand(ctk.CTk):
             threading.Thread(target=self.run_deploy, daemon=True).start()
 
     def run_deploy(self):
-        try:
+        try: 
             target = os.path.join(self.RULES_DIR, os.path.basename(self.selected_path))
             count = 0
             if self.is_folder:
