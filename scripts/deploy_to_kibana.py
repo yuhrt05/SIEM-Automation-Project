@@ -12,7 +12,6 @@ RULES_INPUT = 'rules/'
 NDJSON_OUTPUT = 'rules/windows_rules.ndjson'
 
 def get_sigma_path():
-    """Find Sigma CLI path for Windows/Linux"""
     sigma_path = shutil.which("sigma")
     if sigma_path: return f'"{sigma_path}"'
     sigma_exe = os.path.join(os.path.dirname(sys.executable), "Scripts", "sigma.exe")
@@ -21,7 +20,6 @@ def get_sigma_path():
 def process_rules():
     print("[*] Processing rules and metadata...")
     deprecated_ids = []
-    
     for root, _, files in os.walk(RULES_INPUT):
         for file in files:
             if not file.endswith(('.yml', '.yaml')): continue   
@@ -30,8 +28,6 @@ def process_rules():
                 with open(path, 'r', encoding='utf-8') as f:
                     data = yaml.safe_load(f)
                 if not data: continue
-                
-                # Identify rules to be disabled on SIEM
                 if str(data.get('status', '')).lower() == 'deprecated':
                     deprecated_ids.append(data.get('id'))
                     print(f"  [-] Target OFF (deprecated): {file}")
@@ -51,11 +47,8 @@ def patch_ndjson(deprecated_ids):
     with open(NDJSON_OUTPUT, 'r', encoding='utf-8') as f:
         lines = [json.loads(line) for line in f if line.strip()]
     for rule in lines:
-        # 1. Vá: Giảm độ trễ từ 5m xuống 1m
         rule['interval'] = "1m"
         rule['from'] = "now-120s"
-        
-        # 2. Xử lý deprecated rules
         if rule.get('rule_id') in deprecated_ids:
             rule['enabled'] = False
         
@@ -65,20 +58,13 @@ def patch_ndjson(deprecated_ids):
     print("[+] Patching completed successfully.")
 
 def deploy():
-    # 1. Prepare Rules & Metadata (Lấy danh sách deprecated IDs)
     dep_ids = process_rules()
-    
-    # 2. Sigma Convert
-    # Chuyển đổi từ Sigma YAML sang Elastic NDJSON
     cmd = f'{get_sigma_path()} convert -t lucene -p ecs_windows -f siem_rule_ndjson "{RULES_INPUT}" --skip-unsupported -o "{NDJSON_OUTPUT}"'
     print("[*] Converting Sigma rules...")
     if subprocess.run(cmd, shell=True, capture_output=True).returncode != 0:
         print("[-] Conversion failed.")
         return
-
-    # 3. Patch Status & Performance 
     patch_ndjson(dep_ids)
-    # 4. API Upload (Import vào Kibana)
     api = f"{URL}{'' if SPACE_ID == 'default' else f'/s/{SPACE_ID}'}/api/detection_engine/rules/_import"
     print(f"[*] Deploying to Space [{SPACE_ID}]...")
     

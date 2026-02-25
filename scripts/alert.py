@@ -9,8 +9,6 @@ from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
 from datetime import datetime, timezone
-
-# Khử cảnh báo không cần thiết
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 load_dotenv()
@@ -33,12 +31,9 @@ class AlertMonitor:
         current_config = env_settings.get(self.branch, env_settings["dev"])
         self.INDEX = current_config["index"]
         self.ENV_LABEL = current_config["label"]
-
         self.es = Elasticsearch(self.ELASTIC_HOST, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        
-        # Tạo bộ nhớ đệm lưu ID của 500 bản ghi gần nhất đã gửi
         self.sent_alerts_cache = deque(maxlen=500)
         
     def _get_current_branch(self):
@@ -68,7 +63,7 @@ class AlertMonitor:
                                 {
                                     "range": {
                                         "@timestamp": {
-                                            "gte": self.last_checkpoint # Lấy từ mốc cũ
+                                            "gte": self.last_checkpoint
                                         }
                                     }
                                 }
@@ -85,9 +80,7 @@ class AlertMonitor:
                     aggregated_alerts = {}
 
                     for hit in hits:
-                        alert_id = hit['_id'] # Lấy ID duy nhất của document trong ES
-                        
-                        # Nếu ID này đã nằm trong danh sách đã gửi -> Bỏ qua
+                        alert_id = hit['_id']
                         if alert_id in self.sent_alerts_cache:
                             continue
                             
@@ -103,8 +96,6 @@ class AlertMonitor:
                                    _src.get('source', {}).get('ip') or "N/A"
 
                         proc_name = _src.get('process', {}).get('name') or "N/A"
-                        
-                        # Fingerprint để gom nhóm những cái giống hệt nhau
                         fingerprint = f"{rule_name}|{user_name}|{evidence}"
 
                         if fingerprint not in aggregated_alerts:
@@ -116,14 +107,12 @@ class AlertMonitor:
                                 "proc_name": proc_name,
                                 "user": user_name,
                                 "rule": rule_name,
-                                "ids": [alert_id] # Lưu danh sách ID để add vào cache sau khi gửi
+                                "ids": [alert_id]
                             }
                         else:
                             aggregated_alerts[fingerprint]["count"] += 1
                             aggregated_alerts[fingerprint]["last_time"] = timestamp
                             aggregated_alerts[fingerprint]["ids"].append(alert_id)
-
-                    # Gửi tin nhắn Telegram
                     for fp, alert in aggregated_alerts.items():
                         _s = alert["source"]
                         count = alert["count"]
@@ -148,14 +137,9 @@ class AlertMonitor:
                                f"━━━━━━━━━━━━━━━━━━━━━")
 
                         self.send_telegram(msg)
-                        
-                        # Sau khi gửi thành công, đưa các ID này vào Cache để lần sau không quét trùng
                         for aid in alert["ids"]:
                             self.sent_alerts_cache.append(aid)
-                    
-                    # Cập nhật checkpoint
                     self.last_checkpoint = hits[-1]['_source']['@timestamp']
-
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
 

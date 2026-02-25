@@ -32,8 +32,6 @@ class RuleManagerFrame(ctk.CTkFrame):
     def _build_ui(self):
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="x", padx=10, pady=10)
-
-        # Search & Mode
         top = ctk.CTkFrame(container, fg_color="transparent")
         top.pack(fill="x", pady=(0, 5))
         self.search_var = ctk.StringVar()
@@ -41,8 +39,6 @@ class RuleManagerFrame(ctk.CTkFrame):
         ctk.CTkEntry(top, placeholder_text="Search rules...", textvariable=self.search_var, width=320, height=35).pack(side="left", padx=(0, 10))
         self.mode_var = ctk.StringVar(value="File Mode")
         ctk.CTkOptionMenu(top, values=["File Mode", "Folder Mode"], variable=self.mode_var, width=120, height=35, command=self._on_mode_change).pack(side="left")
-
-        # Buttons
         bot = ctk.CTkFrame(container, fg_color="transparent")
         bot.pack(fill="x", pady=5)
         for text, color, status in [("ENABLE", "#28A745", "test"), ("DISABLE", "#FF3B30", "deprecated")]:
@@ -51,7 +47,6 @@ class RuleManagerFrame(ctk.CTkFrame):
         ctk.CTkButton(bot, text="DELETE", width=80, height=35, fg_color="#6C757D", font=("Segoe UI", 11, "bold"), command=self.delete).pack(side="left", padx=(10, 5))
         ctk.CTkButton(bot, text="RESTORE", width=80, height=35, fg_color="transparent", border_width=1, text_color="#65676B", font=("Segoe UI", 11, "bold"), command=self.restore).pack(side="left")
         ctk.CTkButton(bot, text="SYNC AUDIT", width=100, height=35, fg_color="#007AFF", font=("Segoe UI", 11, "bold"), command=self.sync_audit).pack(side="left", padx=10)
-        # Treeview
         self.drop = ctk.CTkFrame(container, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB")
         self.tree = ttk.Treeview(self.drop, columns=("Status", "Title"), show="headings", height=8)
         self.tree.heading("Status", text="STATUS"); self.tree.column("Status", width=80, anchor="center")
@@ -103,7 +98,6 @@ class RuleManagerFrame(ctk.CTkFrame):
 
             self.log_func(f"[*] Target Branch: {current_branch.upper()} | Space: {space_id}")
             try:
-                # 1. Thu thập tất cả Rule IDs trong mục tiêu (File hoặc Folder)
                 host = os.getenv('ELASTIC_HOST2').rstrip('/')
                 api_url = f"{host}/api/detection_engine/rules/_bulk_delete" if space_id == "default" \
                         else f"{host}/s/{space_id}/api/detection_engine/rules/_bulk_delete"
@@ -126,8 +120,6 @@ class RuleManagerFrame(ctk.CTkFrame):
 
                 if not payload_full: 
                     return self.log_func("[-] No valid Rule IDs found.")
-
-                # 2. CHUNKING: Chia nhỏ payload để tránh Timeout SIEM (100 rules mỗi batch)
                 chunk_size = 100
                 chunks = [payload_full[i:i + chunk_size] for i in range(0, len(payload_full), chunk_size)]
                 
@@ -135,7 +127,6 @@ class RuleManagerFrame(ctk.CTkFrame):
                 self.log_func(f"[*] Processing {len(payload_full)} rules in {len(chunks)} batches...")
                 success_on_siem = True
                 for idx, chunk in enumerate(chunks):
-                    # Tăng timeout lên 60s cho mỗi đợt gửi
                     res = requests.post(
                         api_endpoint,
                         auth=(os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')),
@@ -151,16 +142,12 @@ class RuleManagerFrame(ctk.CTkFrame):
                         break
                     else:
                         self.log_func(f"[+] Batch {idx+1}/{len(chunks)} cleared on SIEM.")
-
-                # 3. Xử lý Local & Git (Chỉ chạy khi SIEM đã xóa xong các batches)
                 if success_on_siem:
                     dest = os.path.join(self.trash_dir, f"{name}_dir" if mode == "Folder Mode" else name)
                     if os.path.exists(dest):
                         if os.path.isdir(dest): shutil.rmtree(dest)
                         else: os.remove(dest)
                     shutil.move(path, dest)
-                    
-                    # Đồng bộ Git
                     try:
                         subprocess.run(["git", "add", "."], check=True)
                         msg = f"SOC-GUI: Bulk Deleted {mode} {name} (Env: {current_branch})"
@@ -186,20 +173,15 @@ class RuleManagerFrame(ctk.CTkFrame):
             api = f"{host}{'' if space_id == 'default' else f'/s/{space_id}'}/api/detection_engine/rules/_find"
             
             try:
-                # 1. Lấy Rule IDs từ Kibana (mặc định lấy 1000 rules)
                 res = requests.get(api, auth=(os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')),
                                    headers={"kbn-xsrf": "true"}, params={"per_page": 1000}, verify=False, timeout=20)
                 kibana_ids = {r['rule_id'] for r in res.json().get('data', [])}
-
-                # 2. Lấy Rule IDs từ Repo Local
-                repo_map = {} # {id: path}
+                repo_map = {}
                 for r in self.all_rules:
                     with open(r['path'], encoding='utf-8') as f:
                         rid = yaml.safe_load(f).get('id')
                         if rid: repo_map[rid] = r['file']
                 repo_ids = set(repo_map.keys())
-
-                # 3. So khớp
                 only_in_repo = repo_ids - kibana_ids
                 only_in_kibana = kibana_ids - repo_ids
                 if not only_in_repo and not only_in_kibana:
