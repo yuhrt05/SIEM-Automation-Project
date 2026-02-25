@@ -256,9 +256,7 @@ class SOCXCommand(ctk.CTk):
             self._show_progress()
             self.btn_push.configure(state="disabled", text="SYNCING...")
             
-            self.write_log("PATCHING METADATA & STATUS MAP...")
-            subprocess.run(["python", "scripts/deploy_to_kibana.py"], check=True, capture_output=True)
-            
+            self.write_log("PATCHING METADATA & STATUS MAP...")         
             for cmd in [["git", "add", "."], ["git", "commit", "-m", msg], ["git", "push", "origin", "main"]]:
                 subprocess.run(cmd, check=True, capture_output=True)
                 self.write_log(f"GIT: {' '.join(cmd)} - SUCCESS")
