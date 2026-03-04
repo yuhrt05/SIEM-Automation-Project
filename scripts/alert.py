@@ -34,6 +34,7 @@ class AlertMonitor:
         self.es = Elasticsearch(self.ELASTIC_HOST, basic_auth=self.AUTH, verify_certs=False)
         self.running = False 
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_sort_value = None
         self.sent_alerts_cache = deque(maxlen=500)
         
     def _get_current_branch(self):
@@ -70,8 +71,13 @@ class AlertMonitor:
                             ]
                         }
                     },
-                    "sort": [{"@timestamp": {"order": "asc"}}]
+                    "sort": [
+                        {"@timestamp": {"order": "asc"}},
+                        {"_doc": {"order": "asc"}}
+                    ]
                 }
+                if self.last_sort_value:
+                    query["search_after"] = self.last_sort_value
 
                 res = self.es.search(index=self.INDEX, body=query)
                 hits = res['hits']['hits']
@@ -93,7 +99,8 @@ class AlertMonitor:
                         
                         evidence = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
                                    _src.get('process', {}).get('command_line') or \
-                                   _src.get('source', {}).get('ip') or "N/A"
+                                   _src.get('source', {}).get('ip') or \
+                                   _src.get('host', {}).get('ip') or "N/A"
 
                         proc_name = _src.get('process', {}).get('name') or "N/A"
                         fingerprint = f"{rule_name}|{user_name}|{evidence}"
@@ -113,6 +120,7 @@ class AlertMonitor:
                             aggregated_alerts[fingerprint]["count"] += 1
                             aggregated_alerts[fingerprint]["last_time"] = timestamp
                             aggregated_alerts[fingerprint]["ids"].append(alert_id)
+                    
                     for fp, alert in aggregated_alerts.items():
                         _s = alert["source"]
                         count = alert["count"]
@@ -140,7 +148,14 @@ class AlertMonitor:
                         for aid in alert["ids"]:
                             self.sent_alerts_cache.append(aid)
                     self.last_checkpoint = hits[-1]['_source']['@timestamp']
+                    self.last_sort_value = hits[-1]['sort']
+
+                    if len(hits) < 1000:
+                        time.sleep(5)
+                else:
+                    self.last_sort_value = None
+                    time.sleep(5)
+
             except Exception as e:
                 log_callback(f"[-] Error: {e}")
-
-            time.sleep(5)
+                time.sleep(5)
