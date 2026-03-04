@@ -36,13 +36,13 @@ class AlertMonitor:
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         self.last_sort_value = None
         self.sent_alerts_cache = deque(maxlen=500)
-        
+
     def _get_current_branch(self):
         try:
             return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
         except Exception:
             return "dev"
-
+        
     def send_telegram(self, msg):
         try:
             url = f"https://api.telegram.org/bot{self.TOKEN}/sendMessage"
