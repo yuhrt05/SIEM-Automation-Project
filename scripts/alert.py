@@ -64,7 +64,7 @@ class AlertMonitor:
                                 {
                                     "range": {
                                         "@timestamp": {
-                                            "gte": self.last_checkpoint
+                                            "gt": self.last_checkpoint
                                         }
                                     }
                                 }
@@ -153,7 +153,6 @@ class AlertMonitor:
                     if len(hits) < 1000:
                         time.sleep(5)
                 else:
-                    self.last_sort_value = None
                     time.sleep(5)
 
             except Exception as e:
