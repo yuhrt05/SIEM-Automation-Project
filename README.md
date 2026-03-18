@@ -1,24 +1,50 @@
 ![image](Diagram/Luong_chi_tiet.png)
 
 
-## SIEM Automation Framework
-Hệ thống tự động hóa quy trình quản lý luật phát hiện (Detection Rules) trên Elastic Stack thông qua pipeline CI/CD và cơ chế giám sát cảnh báo tập trung.
+## SIEM Automation
+Hệ thống quản lý Sigma Rules dựa trên mô hình DaC và giám sát cảnh báo tập trung cho ELK Stack thông qua giao diện GUI và tự động hóa CI/CD.
 
-## Các thành phần chính
-- Management Layer: Quản lý mã nguồn luật trên GitHub với hai nhánh chính: dev (thử nghiệm) và main (môi trường vận hành).
+### Tính năng chính
+- Rule Manager: Quản lý, chỉnh sửa và đồng bộ hóa Sigma Rules giữa Local Repo và Kibana.
+- Alert Monitor: Giám sát thời gian thực (Real-time) các chỉ số rủi ro và gửi cảnh báo qua Telegram.
+- Git Integration: Tự động hóa quy trình Git Add/Commit/Push khi thay đổi Rule.
 
-- CI/CD & API Push: Sử dụng GitHub Actions để tự động đẩy các thay đổi cấu hình tới Kibana API tương ứng (Dev/Prod) sau khi kiểm tra.
+### Cài đặt nhanh
+1. Clone repository:
 
-- SIEM - Elastic Stack:
+```Bash
+git clone https://github.com/yuhrt05/SIEM-Automation-Project/
+cd <repo-folder>
+```
 
-    - Detection Engine: Thực hiện đối soát dữ liệu log (Pattern Match) dựa trên các luật đã nạp.
+2. Cài đặt thư viện:
 
-    - Elasticsearch Alert Index: Nơi lưu trữ tập trung các cảnh báo được kích hoạt.
+```Bash
+pip install -r requirements.txt
+```
+3. Cấu hình file .env:
 
-- Automated Monitoring:
+```Plaintext
+ELASTIC_HOST1=https://<ip>:9200
+ELASTIC_USER=elastic
+ELASTIC_PASS=<password>
+TELEGRAM_TOKEN=<bot_token>
+TELEGRAM_CHAT_ID=<chat_id>
+INDEX_PROD=.alerts-security.alerts-default
+INDEX_DEV=.alerts-security.alerts-dev
+KIBANA_SPACE_PROD=default
+KIBANA_SPACE_DEV=detection-dev
+```
+### Cấu trúc chính
+- main.py: Khởi chạy giao diện chính.
+- manager.py: Xử lý logic quản lý file Sigma và API Elastic.
+- alert.py: Engine quét và đẩy cảnh báo Telegram.
+- deploy.py: Chuyển đổi và triển khai rule từ Repo lên Kibana
+- rules/: Thư mục lưu trữ các file Sigma (.yml).
 
-    - Script Python (AlertMonitor) thực hiện lấy dữ liệu (polling) từ Alert Index.
+### Sử dụng
+Chạy lệnh sau để bắt đầu:
 
-    - Xử lý logic nội bộ: Loại bỏ trùng lặp (Deduplicate), lọc mức độ nghiêm trọng và định dạng dữ liệu.
-
-    - Thông báo: Gửi cảnh báo trực tiếp tới Security Analyst qua Telegram Bot API.
+```Bash
+python main.py
+```
