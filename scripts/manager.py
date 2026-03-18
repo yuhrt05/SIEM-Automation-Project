@@ -98,19 +98,44 @@ class RuleManager:
             host = os.getenv('ELASTIC_HOST2', '').rstrip('/')
             api = f"{host}{'' if space_id == 'default' else f'/s/{space_id}'}/api/detection_engine/rules/_find"
             try:
-                res = requests.get(api, auth=(os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')), headers={"kbn-xsrf": "true"}, params={"per_page": 1000}, verify=False, timeout=20)
-                kibana_ids = {r['rule_id'] for r in res.json().get('data', [])}
+                self.log_func("[*] Đang đối soát dữ liệu Repo và Kibana...")
+                res = requests.get(
+                    api, 
+                    auth=(os.getenv('ELASTIC_USER'), os.getenv('ELASTIC_PASS')),
+                    headers={"kbn-xsrf": "true"}, 
+                    params={"per_page": 1000}, 
+                    verify=False, 
+                    timeout=20
+                )
+                kibana_data = res.json().get('data', [])
+                kibana_ids = {r['rule_id'] for r in kibana_data}
                 repo_map = {}
                 for r in self.all_rules:
-                    with open(r['path'], encoding='utf-8') as f:
-                        rid = yaml.safe_load(f).get('id')
-                        if rid: repo_map[rid] = r['file']
+                    try:
+                        with open(r['path'], encoding='utf-8') as f:
+                            rid = yaml.safe_load(f).get('id')
+                            if rid:
+                                repo_map[rid] = r['file']
+                    except:
+                        continue
                 repo_ids = set(repo_map.keys())
                 only_in_repo = repo_ids - kibana_ids
                 only_in_kibana = kibana_ids - repo_ids
-                if not only_in_repo and not only_in_kibana: self.log_func("[+] Repo và Kibana đồng bộ 100%")
-                else: self.log_func(f"[!] Lệch: Repo({len(only_in_repo)}) | Kibana({len(only_in_kibana)})")
-            except Exception as e: self.log_func(f"[-] Lỗi đối soát: {e}")
+                self.log_func(f"[!] Thống kê: Repo({len(repo_ids)}) | Kibana({len(kibana_ids)})")
+                if not only_in_repo and not only_in_kibana:
+                    self.log_func("[+] Đồng bộ hoàn toàn 100%")
+                else:
+                    self.log_func(f"--- CHI TIẾT SAI LỆCH ({len(only_in_repo) + len(only_in_kibana)}) ---")
+                    if only_in_repo:
+                        self.log_func(f"[*] Có ở Repo nhưng chưa có trên Kibana ({len(only_in_repo)}):")
+                        for rid in only_in_repo:
+                            self.log_func(f"  + {repo_map[rid]}")
+                    if only_in_kibana:
+                        self.log_func(f"[*] Có trên Kibana nhưng đã mất trong Repo ({len(only_in_kibana)}):")
+                        for rid in only_in_kibana:
+                            self.log_func(f"  - ID: {rid}")
+            except Exception as e:
+                self.log_func(f"[-] Lỗi đối soát: {str(e)}")
         threading.Thread(target=_task, daemon=True).start()
 
     def restore(self, mode, refresh_callback):
