@@ -27,6 +27,7 @@ class AlertMonitor:
             "main": {"index": os.getenv("INDEX_PROD"), "label": "PROD"},
             "dev":  {"index": os.getenv("INDEX_DEV"),  "label": "DEV"}
         }
+
         current_config = env_settings.get(self.branch, env_settings["dev"])
         self.INDEX = current_config["index"]
         self.ENV_LABEL = current_config["label"]
@@ -35,11 +36,13 @@ class AlertMonitor:
         self.last_checkpoint = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         self.last_sort_value = None
         self.sent_alerts_cache = deque(maxlen=500)
+
     def _get_current_branch(self):
         try:
             return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
         except Exception:
             return "dev"
+        
     def send_telegram(self, msg):
         try:
             url = f"https://api.telegram.org/bot{self.TOKEN}/sendMessage"
@@ -47,8 +50,10 @@ class AlertMonitor:
             requests.post(url, data=payload, timeout=10)
         except Exception as e:
             print(f"\n[-] Telegram Error: {e}")
+
     def run_logic(self, log_callback):
         log_callback(f"[*] SOC MONITORING ACTIVE: {self.ENV_LABEL}")
+        
         while self.running:
             try:
                 query = {
@@ -59,7 +64,7 @@ class AlertMonitor:
                                 {
                                     "range": {
                                         "@timestamp": {
-                                            "gte": self.last_checkpoint
+                                            "gt": self.last_checkpoint
                                         }
                                     }
                                 }
@@ -73,7 +78,7 @@ class AlertMonitor:
                 }
                 if self.last_sort_value:
                     query["search_after"] = self.last_sort_value
-                    
+
                 res = self.es.search(index=self.INDEX, body=query)
                 hits = res['hits']['hits']
 
@@ -123,12 +128,12 @@ class AlertMonitor:
                         pp_name = _s.get('process', {}).get('parent', {}).get('name') or "N/A"
 
                         icon = "🔴" if risk_score >= 70 else "🟡" if risk_score >= 40 else "🔵"
-                        label = "HIGH" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
+
                         local_time = parser.isoparse(alert["last_time"]).astimezone(tz.tzlocal()).strftime('%H:%M:%S')
 
                         attempt_str = f" (x{count})" if count > 1 else ""
 
-                        msg = (f"{icon} <b>{label} RISK ALERT{attempt_str}</b>\n"
+                        msg = (f"{icon} <b>{self.ENV_LABEL} RISK ALERT{attempt_str}</b>\n"
                                f"Risk Score: <code>{risk_score}</code>\n"
                                f"━━━━━━━━━━━━━━━━━━━━━\n"
                                f"- Time: <code>{local_time}</code> | User: <code>{alert['user']}</code>\n"
@@ -148,7 +153,6 @@ class AlertMonitor:
                     if len(hits) < 1000:
                         time.sleep(5)
                 else:
-                    self.last_sort_value = None
                     time.sleep(5)
 
             except Exception as e:
