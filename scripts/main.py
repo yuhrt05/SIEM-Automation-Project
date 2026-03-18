@@ -15,7 +15,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 
 from alert import AlertMonitor
-from manager import RuleManager 
+from manager import RuleManager
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
@@ -38,29 +38,29 @@ class SOCXCommand(ctk.CTk):
         super().__init__()
 
         self.title("SOC GUI")
-        self.geometry("1100x900") 
+        self.geometry("1100x950") 
 
-        # Khai báo các biến cấu hình trước khi nạp Logic
+        # --- 1. KHAI BÁO BIẾN SỐ CƠ BẢN ---
         self.RULES_DIR = "rules/"
-        self.monitor_system = AlertMonitor()
-        self.logic = RuleManager(self.RULES_DIR, self.write_log)
-
+        self.placeholder_msg = "ENTER COMMIT MSG HERE..."
         self.selected_path = None
         self.is_folder = False
         self.blink_state = False
-        
-        # Biến quản lý Placeholder
-        self.placeholder_msg = "ENTER COMMIT MSG HERE..."
-
-        # Biến cho Progress Bar
         self.progress = None
-
-        self._init_ui()
         
-        # Load dữ liệu ban đầu cho bảng
+        # --- 2. GÁN PLACEHOLDER ĐỂ TRÁNH LỖI KHI VẼ UI ---
+        self.logic = None 
+
+        # --- 3. KHỞI TẠO UI TRƯỚC (Để tạo log_box) ---
+        self._init_ui()
+
+        # --- 4. KHỞI TẠO MONITOR & LOGIC SAU (Khi log_box đã sẵn sàng) ---
+        self.monitor_system = AlertMonitor()
+        self.logic = RuleManager(self.RULES_DIR, self.write_log)
+
+        # --- 5. CẬP NHẬT DỮ LIỆU LÊN GIAO DIỆN ---
         self.update_ui_list()
         
-        # Khởi chạy luồng cập nhật CPU/RAM
         threading.Thread(target=self._update_system_stats, daemon=True).start()
 
     def _init_ui(self):
@@ -120,13 +120,49 @@ class SOCXCommand(ctk.CTk):
         self.commit_input.bind("<FocusIn>", self._on_focus_in)
         self.commit_input.bind("<FocusOut>", self._on_focus_out)
 
+        # --- BÊ PHẦN UI TỪ MANAGER.PY SANG ĐÂY ---
+        self.manager_card = ctk.CTkFrame(self.workspace, fg_color=COLOR_FRAME, border_width=1, border_color=COLOR_BORDER, corner_radius=20)
+        self.manager_card.pack(fill="x", padx=40, pady=10)
+
+        container = ctk.CTkFrame(self.manager_card, fg_color="transparent")
+        container.pack(fill="x", padx=10, pady=10)
+
+        top = ctk.CTkFrame(container, fg_color="transparent")
+        top.pack(fill="x", pady=(0, 5))
+
+        self.search_var = ctk.StringVar()
+        # Dùng Lambda để tránh lỗi NoneType lúc khởi tạo
+        self.search_var.trace_add("write", lambda *args: self.logic.filter_logic(self.search_var.get(), self.mode_var.get(), self.tree, self.drop) if self.logic else None)
+
+        ctk.CTkEntry(top, placeholder_text="Search rules...", textvariable=self.search_var, width=320, height=35).pack(side="left", padx=(0, 10))
+
+        self.mode_var = ctk.StringVar(value="File Mode")
+        ctk.CTkOptionMenu(top, values=["File Mode", "Folder Mode"], variable=self.mode_var, width=120, height=35, command=lambda _: self.logic.on_mode_change(self.search_var, self.drop) if self.logic else None).pack(side="left")
+
+        bot = ctk.CTkFrame(container, fg_color="transparent")
+        bot.pack(fill="x", pady=5)
+
+        # Dùng Lambda cho tất cả command nút bấm
+        for text, color, status in [("ENABLE", "#28A745", "test"), ("DISABLE", "#FF3B30", "deprecated")]:
+            ctk.CTkButton(bot, text=text, width=80, height=35, fg_color=color, font=("Segoe UI", 11, "bold"),
+                          command=lambda s=status: self.logic.set_status(s, self.tree, self.update_ui_list)).pack(side="left", padx=2)
+
+        ctk.CTkButton(bot, text="DELETE", width=80, height=35, fg_color="#6C757D", font=("Segoe UI", 11, "bold"), command=lambda: self.logic.delete(self.tree, self.mode_var.get(), self.update_ui_list)).pack(side="left", padx=(10, 5))
+        ctk.CTkButton(bot, text="RESTORE", width=80, height=35, fg_color="transparent", border_width=1, text_color="#65676B", font=("Segoe UI", 11, "bold"), command=lambda: self.logic.restore(self.mode_var.get(), self.update_ui_list)).pack(side="left")
+        ctk.CTkButton(bot, text="SYNC AUDIT", width=100, height=35, fg_color="#007AFF", font=("Segoe UI", 11, "bold"), command=lambda: self.logic.sync_audit()).pack(side="left", padx=10)
+
+        self.drop = ctk.CTkFrame(container, fg_color="#FFFFFF", border_width=1, border_color="#E4E6EB")
+        self.tree = ttk.Treeview(self.drop, columns=("Status", "Title"), show="headings", height=8)
+        self.tree.heading("Status", text="STATUS"); self.tree.column("Status", width=80, anchor="center")
+        self.tree.heading("Title", text="TITLE"); self.tree.column("Title", width=420, anchor="w")
+        self.tree.pack(fill="both", expand=True, padx=2, pady=2)
+
         # --- TERMINAL ---
         self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER, corner_radius=10)
-        self.term_frame.pack(fill="x", padx=40, pady=(10, 10))
+        self.term_frame.pack(fill="x", padx=40, pady=(20, 40))
         
         self.term_header = ctk.CTkFrame(self.term_frame, fg_color="transparent", height=35)
         self.term_header.pack(fill="x", padx=10, pady=(5, 0))
-        
         ctk.CTkLabel(self.term_header, text="SYSTEM MONITOR OUTPUT", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=5)
         
         self.btn_clear = ctk.CTkButton(self.term_header, text="CLEAR LOG", width=90, height=25, fg_color="transparent", border_width=1, border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED, command=self.clear_log)
@@ -137,58 +173,16 @@ class SOCXCommand(ctk.CTk):
         
         self.write_log("SOC Manager System: Ready.")
 
-        # --- BẮT ĐẦU PHẦN UI CỦA RULE MANAGER (DI CHUYỂN TỪ MANAGER.PY) ---
-        self.manager_card = ctk.CTkFrame(self.workspace, fg_color=COLOR_FRAME, border_width=1, border_color=COLOR_BORDER, corner_radius=20)
-        self.manager_card.pack(fill="x", padx=40, pady=10)
-
-        # Thanh Search và Mode
-        search_row = ctk.CTkFrame(self.manager_card, fg_color="transparent")
-        search_row.pack(fill="x", padx=20, pady=(15, 5))
-        
-        self.search_var = ctk.StringVar()
-        self.search_var.trace_add("write", lambda *args: self.logic.filter_logic(self.search_var.get(), self.mode_var.get(), self.tree, self.drop))
-        
-        ctk.CTkEntry(search_row, placeholder_text="Search rules...", textvariable=self.search_var, width=350, height=35).pack(side="left", padx=(0, 10))
-        
-        self.mode_var = ctk.StringVar(value="File Mode")
-        ctk.CTkOptionMenu(search_row, values=["File Mode", "Folder Mode"], variable=self.mode_var, width=130, command=lambda _: self.logic.on_mode_change(self.search_var, self.drop)).pack(side="left")
-
-        # Hàng nút điều khiển
-        btn_row = ctk.CTkFrame(self.manager_card, fg_color="transparent")
-        btn_row.pack(fill="x", padx=20, pady=5)
-        
-        ctk.CTkButton(btn_row, text="ENABLE", width=80, height=35, fg_color=COLOR_STATUS_GREEN, font=("Segoe UI", 11, "bold"), 
-                      command=lambda: self.logic.set_status("test", self.tree, self.update_ui_list)).pack(side="left", padx=2)
-        ctk.CTkButton(btn_row, text="DISABLE", width=80, height=35, fg_color=COLOR_NEON_RED, font=("Segoe UI", 11, "bold"), 
-                      command=lambda: self.logic.set_status("deprecated", self.tree, self.update_ui_list)).pack(side="left", padx=2)
-        ctk.CTkButton(btn_row, text="DELETE", width=80, height=35, fg_color="#6C757D", font=("Segoe UI", 11, "bold"), 
-                      command=lambda: self.logic.delete(self.tree, self.mode_var.get(), self.update_ui_list)).pack(side="left", padx=(10, 5))
-        ctk.CTkButton(btn_row, text="RESTORE", width=80, height=35, fg_color="transparent", border_width=1, text_color=COLOR_TEXT_MUTED, 
-                      command=lambda: self.logic.restore(self.mode_var.get(), self.update_ui_list)).pack(side="left")
-        ctk.CTkButton(btn_row, text="SYNC AUDIT", width=100, height=35, fg_color="#007AFF", command=self.logic.sync_audit).pack(side="left", padx=10)
-
-        # Bảng hiển thị (Treeview)
-        self.drop = ctk.CTkFrame(self.manager_card, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER)
-        self.tree = ttk.Treeview(self.drop, columns=("Status", "Title"), show="headings", height=8)
-        self.tree.heading("Status", text="STATUS"); self.tree.column("Status", width=80, anchor="center")
-        self.tree.heading("Title", text="TITLE"); self.tree.column("Title", width=450, anchor="w")
-        self.tree.pack(fill="both", expand=True, padx=2, pady=2)
-        # --- KẾT THÚC PHẦN UI RULE MANAGER ---
-
     def update_ui_list(self):
-        """Cập nhật dữ liệu từ disk và render lại Treeview"""
-        self.logic.load_rules_data()
-        self.logic.filter_logic(self.search_var.get(), self.mode_var.get(), self.tree, self.drop)
+        if self.logic:
+            self.logic.load_rules_data()
+            self.logic.filter_logic(self.search_var.get(), self.mode_var.get(), self.tree, self.drop)
 
-    # --- PROGRESS BAR HELPERS ---
     def _show_progress(self):
         if self.progress is None:
-            self.progress = ctk.CTkProgressBar(self.sidebar, 
-                                               width=200, height=12,
-                                               progress_color=COLOR_ACCENT,
-                                               fg_color=COLOR_BORDER)
+            self.progress = ctk.CTkProgressBar(self.sidebar, width=200, height=12, progress_color=COLOR_ACCENT, fg_color=COLOR_BORDER)
             self.progress.pack(pady=10, padx=25, fill="x")
-        self.progress.start() 
+        self.progress.start()
         self.progress.pack()
 
     def _hide_progress(self):
@@ -196,18 +190,14 @@ class SOCXCommand(ctk.CTk):
             self.progress.stop()
             self.progress.pack_forget()
 
-    # --- PLACEHOLDER LOGIC ---
     def _on_focus_in(self, event):
         if self.commit_input.get() == self.placeholder_msg:
-            self.commit_input.delete(0, 'end')
-            self.commit_input.configure(text_color=COLOR_TEXT_DARK)
+            self.commit_input.delete(0, 'end'); self.commit_input.configure(text_color=COLOR_TEXT_DARK)
 
     def _on_focus_out(self, event):
         if not self.commit_input.get():
-            self.commit_input.insert(0, self.placeholder_msg)
-            self.commit_input.configure(text_color=COLOR_TEXT_MUTED)
+            self.commit_input.insert(0, self.placeholder_msg); self.commit_input.configure(text_color=COLOR_TEXT_MUTED)
 
-    # --- LOGIC HANDLING ---
     def browse_data(self):
         choice = messagebox.askyesnocancel("Data Type", "FOLDER (Yes) / FILE (No)?")
         if choice is None: return
@@ -245,25 +235,22 @@ class SOCXCommand(ctk.CTk):
         self.log_box.see("end")
 
     def clear_log(self):
-        self.log_box.delete("1.0", "end")
-        self.write_log("LOG SYSTEM RESET.")
+        self.log_box.delete("1.0", "end"); self.write_log("LOG SYSTEM RESET.")
 
     def _update_system_stats(self):
         while True:
-            cpu = psutil.cpu_percent(interval=1)
-            ram = psutil.virtual_memory().percent
+            cpu = psutil.cpu_percent(interval=1); ram = psutil.virtual_memory().percent
             self.cpu_val.configure(text=f"{cpu}%", text_color=COLOR_NEON_RED if cpu > 80 else COLOR_ACCENT)
             self.ram_val.configure(text=f"{ram}%", text_color=COLOR_NEON_RED if ram > 85 else COLOR_ACCENT)
             time.sleep(1)
 
     def start_deploy_thread(self):
         if self.selected_path:
-            self._show_progress()
-            self.btn_deploy.configure(state="disabled", text="LOADING...")
+            self._show_progress(); self.btn_deploy.configure(state="disabled", text="LOADING...")
             threading.Thread(target=self.run_deploy, daemon=True).start()
 
     def run_deploy(self):
-        try: 
+        try:
             target = os.path.join(self.RULES_DIR, os.path.basename(self.selected_path))
             count = 0
             if self.is_folder:
@@ -273,46 +260,32 @@ class SOCXCommand(ctk.CTk):
                             rel = os.path.relpath(root, self.selected_path)
                             dest = os.path.join(target, rel)
                             if not os.path.exists(dest): os.makedirs(dest)
-                            shutil.copy(os.path.join(root, file), dest)
-                            count += 1
-                self.write_log(f"SUCCESS: {count} rules ingested.")
-                self.update_ui_list()
+                            shutil.copy(os.path.join(root, file), dest); count += 1
+                self.write_log(f"SUCCESS: {count} rules ingested."); self.update_ui_list()
             else:
                 if not os.path.exists(self.RULES_DIR): os.makedirs(self.RULES_DIR)
                 shutil.copy(self.selected_path, self.RULES_DIR)
-                self.write_log("UNIT SUCCESS: File ingested.")
-                self.update_ui_list()
-        except Exception as e:
-            self.write_log(f"ERROR: {str(e)}")
-        finally:
-            self.after(0, self._hide_progress)
-            self.after(0, lambda: self.btn_deploy.configure(state="normal", text="LOAD RULE"))
+                self.write_log("UNIT SUCCESS: File ingested."); self.update_ui_list()
+        except Exception as e: self.write_log(f"ERROR: {str(e)}")
+        finally: self._hide_progress(); self.btn_deploy.configure(state="normal", text="LOAD RULE")
 
     def run_git_push(self):
         msg = self.commit_input.get()
         if msg and msg != self.placeholder_msg:
             self.write_log("INITIATING CLOUD SYNCHRONIZATION...")
             threading.Thread(target=self._git_task, args=(msg,), daemon=True).start()
-        else:
-            messagebox.showwarning("System", "Please enter a valid commit message!")
+        else: messagebox.showwarning("System", "Please enter a valid commit message!")
 
     def _git_task(self, msg):
         try:
-            self.after(0, self._show_progress)
-            self.after(0, lambda: self.btn_push.configure(state="disabled", text="SYNCING..."))
-            
-            self.write_log("PATCHING METADATA & STATUS MAP...")         
+            self._show_progress(); self.btn_push.configure(state="disabled", text="SYNCING...")
+            self.write_log("PATCHING METADATA & STATUS MAP...")        
             for cmd in [["git", "add", "."], ["git", "commit", "-m", msg], ["git", "push", "origin", "main"]]:
                 subprocess.run(cmd, check=True, capture_output=True)
                 self.write_log(f"GIT: {' '.join(cmd)} - SUCCESS")
-            self.write_log("CLOUD SYNC COMPLETE.")
-            self.after(0, lambda: self.commit_input.delete(0, 'end'))
-            self.after(0, lambda: self._on_focus_out(None))
-        except Exception as e:
-            self.write_log(f"GIT ERR: {str(e)}")
-        finally:
-            self.after(0, self._hide_progress)
-            self.after(0, lambda: self.btn_push.configure(state="normal", text="GIT PUSH"))
+            self.write_log("CLOUD SYNC COMPLETE."); self.commit_input.delete(0, 'end'); self._on_focus_out(None)
+        except Exception as e: self.write_log(f"GIT ERR: {str(e)}")
+        finally: self._hide_progress(); self.btn_push.configure(state="normal", text="GIT PUSH")
 
     def _side_btn(self, text, color, cmd):
         btn = ctk.CTkButton(self.sidebar, text=text, fg_color="transparent", text_color=COLOR_TEXT_DARK, border_width=1, border_color=COLOR_BORDER, hover_color="#F0F2F5", font=("Segoe UI", 12, "bold"), height=55, command=cmd)
@@ -325,7 +298,7 @@ class SOCXCommand(ctk.CTk):
         ctk.CTkLabel(f, text=title, font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(pady=(15, 0))
         val_label = ctk.CTkLabel(f, text=value, font=("Segoe UI", 18, "bold"), text_color=color)
         val_label.pack(pady=(0, 15))
-        return val_label 
+        return val_label
 
 if __name__ == "__main__":
     app = SOCXCommand()
