@@ -128,12 +128,12 @@ class AlertMonitor:
                         pp_name = _s.get('process', {}).get('parent', {}).get('name') or "N/A"
 
                         icon = "🔴" if risk_score >= 70 else "🟡" if risk_score >= 40 else "🔵"
-                        label = "HIGH" if icon == "🔴" else "MEDIUM" if icon == "🟡" else "LOW"
+
                         local_time = parser.isoparse(alert["last_time"]).astimezone(tz.tzlocal()).strftime('%H:%M:%S')
 
                         attempt_str = f" (x{count})" if count > 1 else ""
 
-                        msg = (f"{icon} <b>{label} RISK ALERT{attempt_str}</b>\n"
+                        msg = (f"{icon} <b>{self.ENV_LABEL} RISK ALERT{attempt_str}</b>\n"
                                f"Risk Score: <code>{risk_score}</code>\n"
                                f"━━━━━━━━━━━━━━━━━━━━━\n"
                                f"- Time: <code>{local_time}</code> | User: <code>{alert['user']}</code>\n"

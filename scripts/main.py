@@ -12,10 +12,10 @@ import psutil
 import time
 from datetime import datetime
 import customtkinter as ctk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 
 from alert import AlertMonitor
-from manager_rule import RuleManagerFrame 
+from manager import RuleManager 
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
@@ -40,8 +40,11 @@ class SOCXCommand(ctk.CTk):
         self.title("SOC GUI")
         self.geometry("1100x900") 
 
-        self.monitor_system = AlertMonitor()
+        # Khai báo các biến cấu hình trước khi nạp Logic
         self.RULES_DIR = "rules/"
+        self.monitor_system = AlertMonitor()
+        self.logic = RuleManager(self.RULES_DIR, self.write_log)
+
         self.selected_path = None
         self.is_folder = False
         self.blink_state = False
@@ -53,6 +56,9 @@ class SOCXCommand(ctk.CTk):
         self.progress = None
 
         self._init_ui()
+        
+        # Load dữ liệu ban đầu cho bảng
+        self.update_ui_list()
         
         # Khởi chạy luồng cập nhật CPU/RAM
         threading.Thread(target=self._update_system_stats, daemon=True).start()
@@ -116,7 +122,7 @@ class SOCXCommand(ctk.CTk):
 
         # --- TERMINAL ---
         self.term_frame = ctk.CTkFrame(self.workspace, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER, corner_radius=10)
-        self.term_frame.pack(fill="x", padx=40, pady=(20, 40))
+        self.term_frame.pack(fill="x", padx=40, pady=(10, 10))
         
         self.term_header = ctk.CTkFrame(self.term_frame, fg_color="transparent", height=35)
         self.term_header.pack(fill="x", padx=10, pady=(5, 0))
@@ -126,14 +132,53 @@ class SOCXCommand(ctk.CTk):
         self.btn_clear = ctk.CTkButton(self.term_header, text="CLEAR LOG", width=90, height=25, fg_color="transparent", border_width=1, border_color=COLOR_BORDER, text_color=COLOR_TEXT_MUTED, command=self.clear_log)
         self.btn_clear.pack(side="right", padx=5)
         
-        self.log_box = ctk.CTkTextbox(self.term_frame, height=250, fg_color="transparent", text_color=COLOR_TEXT_DARK, font=("Consolas", 14))
+        self.log_box = ctk.CTkTextbox(self.term_frame, height=200, fg_color="transparent", text_color=COLOR_TEXT_DARK, font=("Consolas", 14))
         self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         self.write_log("SOC Manager System: Ready.")
 
-        # --- RULE MANAGER ---
-        self.rule_manager = RuleManagerFrame(self.workspace, self.RULES_DIR, self.write_log)
-        self.rule_manager.pack(fill="x", padx=40, pady=10)
+        # --- BẮT ĐẦU PHẦN UI CỦA RULE MANAGER (DI CHUYỂN TỪ MANAGER.PY) ---
+        self.manager_card = ctk.CTkFrame(self.workspace, fg_color=COLOR_FRAME, border_width=1, border_color=COLOR_BORDER, corner_radius=20)
+        self.manager_card.pack(fill="x", padx=40, pady=10)
+
+        # Thanh Search và Mode
+        search_row = ctk.CTkFrame(self.manager_card, fg_color="transparent")
+        search_row.pack(fill="x", padx=20, pady=(15, 5))
+        
+        self.search_var = ctk.StringVar()
+        self.search_var.trace_add("write", lambda *args: self.logic.filter_logic(self.search_var.get(), self.mode_var.get(), self.tree, self.drop))
+        
+        ctk.CTkEntry(search_row, placeholder_text="Search rules...", textvariable=self.search_var, width=350, height=35).pack(side="left", padx=(0, 10))
+        
+        self.mode_var = ctk.StringVar(value="File Mode")
+        ctk.CTkOptionMenu(search_row, values=["File Mode", "Folder Mode"], variable=self.mode_var, width=130, command=lambda _: self.logic.on_mode_change(self.search_var, self.drop)).pack(side="left")
+
+        # Hàng nút điều khiển
+        btn_row = ctk.CTkFrame(self.manager_card, fg_color="transparent")
+        btn_row.pack(fill="x", padx=20, pady=5)
+        
+        ctk.CTkButton(btn_row, text="ENABLE", width=80, height=35, fg_color=COLOR_STATUS_GREEN, font=("Segoe UI", 11, "bold"), 
+                      command=lambda: self.logic.set_status("test", self.tree, self.update_ui_list)).pack(side="left", padx=2)
+        ctk.CTkButton(btn_row, text="DISABLE", width=80, height=35, fg_color=COLOR_NEON_RED, font=("Segoe UI", 11, "bold"), 
+                      command=lambda: self.logic.set_status("deprecated", self.tree, self.update_ui_list)).pack(side="left", padx=2)
+        ctk.CTkButton(btn_row, text="DELETE", width=80, height=35, fg_color="#6C757D", font=("Segoe UI", 11, "bold"), 
+                      command=lambda: self.logic.delete(self.tree, self.mode_var.get(), self.update_ui_list)).pack(side="left", padx=(10, 5))
+        ctk.CTkButton(btn_row, text="RESTORE", width=80, height=35, fg_color="transparent", border_width=1, text_color=COLOR_TEXT_MUTED, 
+                      command=lambda: self.logic.restore(self.mode_var.get(), self.update_ui_list)).pack(side="left")
+        ctk.CTkButton(btn_row, text="SYNC AUDIT", width=100, height=35, fg_color="#007AFF", command=self.logic.sync_audit).pack(side="left", padx=10)
+
+        # Bảng hiển thị (Treeview)
+        self.drop = ctk.CTkFrame(self.manager_card, fg_color="#FFFFFF", border_width=1, border_color=COLOR_BORDER)
+        self.tree = ttk.Treeview(self.drop, columns=("Status", "Title"), show="headings", height=8)
+        self.tree.heading("Status", text="STATUS"); self.tree.column("Status", width=80, anchor="center")
+        self.tree.heading("Title", text="TITLE"); self.tree.column("Title", width=450, anchor="w")
+        self.tree.pack(fill="both", expand=True, padx=2, pady=2)
+        # --- KẾT THÚC PHẦN UI RULE MANAGER ---
+
+    def update_ui_list(self):
+        """Cập nhật dữ liệu từ disk và render lại Treeview"""
+        self.logic.load_rules_data()
+        self.logic.filter_logic(self.search_var.get(), self.mode_var.get(), self.tree, self.drop)
 
     # --- PROGRESS BAR HELPERS ---
     def _show_progress(self):
@@ -144,7 +189,7 @@ class SOCXCommand(ctk.CTk):
                                                fg_color=COLOR_BORDER)
             self.progress.pack(pady=10, padx=25, fill="x")
         self.progress.start() 
-        self.progress.pack()   # Đảm bảo hiện
+        self.progress.pack()
 
     def _hide_progress(self):
         if self.progress:
@@ -231,17 +276,17 @@ class SOCXCommand(ctk.CTk):
                             shutil.copy(os.path.join(root, file), dest)
                             count += 1
                 self.write_log(f"SUCCESS: {count} rules ingested.")
-                self.rule_manager.load_rules() 
+                self.update_ui_list()
             else:
                 if not os.path.exists(self.RULES_DIR): os.makedirs(self.RULES_DIR)
                 shutil.copy(self.selected_path, self.RULES_DIR)
                 self.write_log("UNIT SUCCESS: File ingested.")
-                self.rule_manager.load_rules()
+                self.update_ui_list()
         except Exception as e:
             self.write_log(f"ERROR: {str(e)}")
         finally:
-            self._hide_progress()
-            self.btn_deploy.configure(state="normal", text="LOAD RULE")
+            self.after(0, self._hide_progress)
+            self.after(0, lambda: self.btn_deploy.configure(state="normal", text="LOAD RULE"))
 
     def run_git_push(self):
         msg = self.commit_input.get()
@@ -253,21 +298,21 @@ class SOCXCommand(ctk.CTk):
 
     def _git_task(self, msg):
         try:
-            self._show_progress()
-            self.btn_push.configure(state="disabled", text="SYNCING...")
+            self.after(0, self._show_progress)
+            self.after(0, lambda: self.btn_push.configure(state="disabled", text="SYNCING..."))
             
             self.write_log("PATCHING METADATA & STATUS MAP...")         
             for cmd in [["git", "add", "."], ["git", "commit", "-m", msg], ["git", "push", "origin", "main"]]:
                 subprocess.run(cmd, check=True, capture_output=True)
                 self.write_log(f"GIT: {' '.join(cmd)} - SUCCESS")
             self.write_log("CLOUD SYNC COMPLETE.")
-            self.commit_input.delete(0, 'end')
-            self._on_focus_out(None)
+            self.after(0, lambda: self.commit_input.delete(0, 'end'))
+            self.after(0, lambda: self._on_focus_out(None))
         except Exception as e:
             self.write_log(f"GIT ERR: {str(e)}")
         finally:
-            self._hide_progress()
-            self.btn_push.configure(state="normal", text="GIT PUSH")
+            self.after(0, self._hide_progress)
+            self.after(0, lambda: self.btn_push.configure(state="normal", text="GIT PUSH"))
 
     def _side_btn(self, text, color, cmd):
         btn = ctk.CTkButton(self.sidebar, text=text, fg_color="transparent", text_color=COLOR_TEXT_DARK, border_width=1, border_color=COLOR_BORDER, hover_color="#F0F2F5", font=("Segoe UI", 12, "bold"), height=55, command=cmd)

@@ -41,4 +41,4 @@ jobs:
           ELASTIC_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
           ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
           KIBANA_SPACE: ${{ env.KIBANA_SPACE }}
-        run: python scripts/deploy_to_kibana.py
+        run: python scripts/deploy.py
