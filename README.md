@@ -1,50 +1,73 @@
 ![image](Diagram/Luong_chi_tiet.png)
 
-
 ## SIEM Automation
 Hệ thống quản lý Sigma Rules dựa trên mô hình DaC và giám sát cảnh báo tập trung cho ELK Stack thông qua giao diện GUI và tự động hóa CI/CD.
 
-### Tính năng chính
-- Rule Manager: Quản lý, chỉnh sửa và đồng bộ hóa Sigma Rules giữa Local Repo và Kibana.
-- Alert Monitor: Giám sát thời gian thực (Real-time) các chỉ số rủi ro và gửi cảnh báo qua Telegram.
-- Git Integration: Tự động hóa quy trình Git Add/Commit/Push khi thay đổi Rule.
+### Các module chính
+- main.py: Khởi chạy giao diện chính.
+- manager.py: Xử lý logic quản lý file Sigma trên repo và Kibana
+- alert.py: Engine chạy song song để quét log, khử trùng lặp (Deduplicate) và đẩy cảnh báo qua Telegram API.
+- deploy.py: Script thực hiện việc chuyển đổi Sigma Rule sang Elastic Query và triển khai lên Kibana.
+- .github\workflows\deploy.yml: Chứa kịch bản CI/CD Pipeline. Tự động kích hoạt khi có thay đổi trong thư mục rules/ để thực hiện kiểm tra cú pháp và triển khai rule lên Kibana.
+- rules/: Thư mục lưu trữ các file Sigma (.yml) mẫu.
 
-### Cài đặt nhanh
-1. Clone repository:
+### Cài đặt chi tiết
+1. Pre-requisites:
+
+Trước khi bắt đầu, hãy đảm bảo bạn đã cài đặt:
+- SIEM Core: ELK Stack version 8.x (Elasticsearch & Kibana)
+- Data Collection: Winlogbeat (đẩy logs từ Local về Elasticsearch) -  cài trên máy Victim 
+- Environment: 
+    - Python 3.10+ 
+    - Git: Version Control, checkout dev/main, CI/CD.
+2. Clone repository & Fork
+
+**Quan trọng**: Bạn cần phải Fork Repo này về repo cá nhân của mình, lưu ý có 2 nhánh dev/main.
+- Nhánh dev: Dùng để thử nghiệm các rules mới trên môi trường Sandbox.
+- Nhánh main: Chứa các rules đã được kiểm duyệt, coi như đang dùng để theo dõi môi trường Production.
 
 ```Bash
 git clone https://github.com/yuhrt05/SIEM-Automation-Project/
 cd <repo-folder>
 ```
 
-2. Cài đặt thư viện:
+3. Cài đặt thư viện:
 
 ```Bash
 pip install -r requirements.txt
 ```
-3. Cấu hình file .env:
+4. Cấu hình .env:
+
+- LOCAL
+
+Tạo file .env tại thư mục gốc của dự án trên máy Local với nội dung sau:
 
 ```Plaintext
-ELASTIC_HOST1=https://<ip>:9200
+ELASTIC_HOST=https://<your_ip>:9200
+KIBANA_HOST=http://<your_ip>:5601
 ELASTIC_USER=elastic
 ELASTIC_PASS=<password>
 TELEGRAM_TOKEN=<bot_token>
 TELEGRAM_CHAT_ID=<chat_id>
-INDEX_PROD=.alerts-security.alerts-default
-INDEX_DEV=.alerts-security.alerts-dev
+INDEX_PROD=.internal.alerts-security.alerts-default-*
+INDEX_DEV=.internal.alerts-security.alerts-detection-dev-*
 KIBANA_SPACE_PROD=default
 KIBANA_SPACE_DEV=detection-dev
 ```
-### Cấu trúc chính
-- main.py: Khởi chạy giao diện chính.
-- manager.py: Xử lý logic quản lý file Sigma và API Elastic.
-- alert.py: Engine quét và đẩy cảnh báo Telegram.
-- deploy.py: Chuyển đổi và triển khai rule từ Repo lên Kibana
-- rules/: Thư mục lưu trữ các file Sigma (.yml).
+- Cấu hình GitHub Secrets
 
-### Sử dụng
-Chạy lệnh sau để bắt đầu:
+Để GitHub Actions có thể deploy rule lên Kibana, bạn cần cấu hình các Encrypted Secrets trong phần cài đặt repo của bạn:
 
+![image](/Diagram/secret.png)
+
+### Cách Sử dụng
+1. Chạy giao diện quản trị
 ```Bash
 python main.py
-```
+``` 
+2. Add Rules: Có thể tự viết (hơi khoai) hoặc có thể dùng nguồn có sẵn như SigmaHQ
+
+3. Deploy
+
+- Sửa rule trên nhánh dev -> git push -> Kiểm tra kết quả trên Kibana Dev Space
+- Merge Pull Request sang main -> Hệ thống tự động đẩy rule lên Kibana Production.
