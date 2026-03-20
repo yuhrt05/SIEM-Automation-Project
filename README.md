@@ -56,7 +56,7 @@ KIBANA_SPACE_DEV=detection-dev
 ```
 - Cấu hình GitHub Secrets
 
-Để GitHub Actions có thể deploy rule lên Kibana, bạn cần cấu hình các Encrypted Secrets trong phần cài đặt repo của bạn:
+Để GitHub Actions có thể deploy rule lên Kibana, bạn cần cấu hình GitHub Secrets trong phần cài đặt repo của bạn:
 
 ![image](/Diagram/secret.png)
 
