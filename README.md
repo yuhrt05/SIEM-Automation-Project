@@ -65,9 +65,14 @@ KIBANA_SPACE_DEV=detection-dev
 ```Bash
 python main.py
 ``` 
-2. Add Rules: Có thể tự viết (hơi khoai) hoặc có thể dùng nguồn có sẵn như SigmaHQ
+2. Add Rules: Có thể tự viết hoặc có thể dùng nguồn có sẵn như SigmaHQ
 
 3. Deploy
 
-- Sửa rule trên nhánh dev -> git push -> Kiểm tra kết quả trên Kibana Dev Space
+- Sửa/Xóa/Cập nhật rule trên nhánh dev -> git push -> Kiểm tra kết quả trên Kibana Dev Space
 - Merge Pull Request sang main -> Hệ thống tự động đẩy rule lên Kibana Production.
+
+## Lưu ý quan trọng về Networking::
+
+Để GitHub Actions có thể giao tiếp với Kibana Server đang chạy tại Local, bạn cần một Public URL.
+- Giải pháp: Có thể sử dụng Ngrok hoặc Cloudflare Tunnel tạm thời nếu chưa có domain để expose port Kibana ra ngoài Internet một cách an toàn mà không cần mở Port trên Router.
