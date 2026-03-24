@@ -18,7 +18,7 @@ class AlertMonitor:
         self.branch = self._get_current_branch()
         print(f"[*] Detected Environment: {self.branch.upper()}")
 
-        self.ELASTIC_HOST = os.getenv("ELASTIC_HOST1")
+        self.ELASTIC_HOST = os.getenv("ELASTIC_HOST")
         self.AUTH = (os.getenv("ELASTIC_USER"), os.getenv("ELASTIC_PASS"))
         self.TOKEN = os.getenv("TELEGRAM_TOKEN")
         self.CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")

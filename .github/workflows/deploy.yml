@@ -23,7 +23,7 @@ jobs:
           pip install requests sigma-cli pyyaml
           sigma plugin install elasticsearch
 
-      - name: Validate Sigma Rules (Security Gate cho Rule)
+      - name: Validate Sigma Rules
         run: |
           sigma check rules/
 

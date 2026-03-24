@@ -57,7 +57,7 @@ class RuleManager:
 
         def _delete_task():
             current_branch, space_id = self._detect_environment()
-            host = os.getenv('ELASTIC_HOST2', '').rstrip('/')
+            host = os.getenv('KIBANA_HOST', '').rstrip('/')
             api_endpoint = f"{host}/api/detection_engine/rules/_bulk_delete" if space_id == "default" else f"{host}/s/{space_id}/api/detection_engine/rules/_bulk_delete"
             try:
                 targets = []
@@ -95,7 +95,7 @@ class RuleManager:
     def sync_audit(self):
         def _task():
             _, space_id = self._detect_environment()
-            host = os.getenv('ELASTIC_HOST2', '').rstrip('/')
+            host = os.getenv('KIBANA_HOST', '').rstrip('/')
             api = f"{host}{'' if space_id == 'default' else f'/s/{space_id}'}/api/detection_engine/rules/_find"
             try:
                 self.log_func("[*] Đang đối soát dữ liệu Repo và Kibana...")
