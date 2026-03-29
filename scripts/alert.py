@@ -8,7 +8,7 @@ from collections import deque
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 from dateutil import tz, parser
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 load_dotenv()
@@ -147,7 +147,10 @@ class AlertMonitor:
                         self.send_telegram(msg)
                         for aid in alert["ids"]:
                             self.sent_alerts_cache.append(aid)
-                    self.last_checkpoint = hits[-1]['_source']['@timestamp']
+                    last_hit_ts_str = hits[-1]['_source']['@timestamp']
+                    last_hit_dt = parser.isoparse(last_hit_ts_str)
+                    safety_checkpoint = last_hit_dt - timedelta(seconds=15)
+                    self.last_checkpoint = safety_checkpoint.isoformat().replace("+00:00", "Z")
                     self.last_sort_value = hits[-1]['sort']
 
                     if len(hits) < 1000:
