@@ -3,7 +3,7 @@ import subprocess, requests, sys, io, os, shutil, yaml, json
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # --- CONFIGURATION ---
-URL = os.getenv('ELASTIC_URL') 
+URL = os.getenv('KIBANA_URL') 
 USER = os.getenv('ELASTIC_USERNAME')
 PASS = os.getenv('ELASTIC_PASSWORD')
 SPACE_ID = os.getenv('KIBANA_SPACE')
