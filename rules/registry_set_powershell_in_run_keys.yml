@@ -45,6 +45,13 @@ detection:
             - 'IRM '
             - ' -noni '
             - ' -noninteractive '
+            - 'powershell'
+            - ' -w '           # Bắt các biến thể -w, -window, -windowstyle
+            - 'hidden'         # Bắt từ khóa ẩn
+            - '-ep'            # Bắt viết tắt -ep
+            - 'bypass'         # Bắt bypass
+            - '-noni'          # Bắt -noni
+            - ' -nop '         # Bắt -nop
     condition: selection
 falsepositives:
     - Legitimate admin or third party scripts. Baseline according to your environment
