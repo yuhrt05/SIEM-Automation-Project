@@ -15,9 +15,9 @@ detection:
     selection:
         # Thay TargetObject bằng registry.path (theo đúng log ELK của bạn)
         registry.path|contains:
-            - '\Software\Microsoft\Windows\CurrentVersion\Run'
-            - '\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'
-            - '\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run'
+            - '\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
+            - '\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'
+            - '\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run'
         
         # Thay Details bằng registry.data.strings (nơi chứa payload thực tế trong log ELK)
         registry.data.strings|contains:
@@ -32,6 +32,7 @@ detection:
             - 'Invoke-'
             - 'iwr'
             - 'FromBase64String'
+            - '-enc'
     condition: selection
 falsepositives:
     - Các script quản trị hệ thống hợp lệ (hiếm khi dùng Run key cho PowerShell ẩn).

@@ -2,7 +2,7 @@ title: Disable Windows Defender Functionalities Via Registry Keys
 id: 0eb46774-f1ab-4a74-8238-1155855f2263
 status: test
 description: Detects when attackers disable Windows Defender functionalities via registry using PowerShell or Reg.exe (Mapped to ECS fields)
-author: AlertIQ, Gemini Adaptive AI
+author: Test
 date: 2022-08-01
 modified: 2026-04-06
 tags:

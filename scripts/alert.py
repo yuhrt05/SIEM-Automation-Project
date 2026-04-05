@@ -99,7 +99,7 @@ class AlertMonitor:
                         
                         evidence = _src.get('powershell', {}).get('file', {}).get('script_block_text') or \
                                    _src.get('process', {}).get('command_line') or \
-                                   _src.get('registry', {}).get('path') or \
+                                   _src.get('registry', {}).get('path') and _src.get('registry', {}).get('path') or \
                                    _src.get('source', {}).get('ip') or "N/A"
 
                         proc_name = _src.get('process', {}).get('name') or "N/A"
