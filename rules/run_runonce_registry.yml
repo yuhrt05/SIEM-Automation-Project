@@ -10,7 +10,7 @@ tags:
     - attack.persistence
     - attack.t1547.001
 logsource:
-    product: windows
+    product: windows x
     service: sysmon
 detection:
     selection:
