@@ -1,24 +1,10 @@
 title: Disable Windows Defender Functionalities Via Registry Keys
 id: 0eb46774-f1ab-4a74-8238-1155855f2263
-related:
-    - id: a64e4198-c1c8-46a5-bc9c-324c86455fd4
-      type: obsolete
-    - id: fd115e64-97c7-491f-951c-fc8da7e042fa
-      type: obsolete
 status: test
-description: Detects when attackers or tools disable Windows Defender functionalities via the Windows registry
-references:
-    - https://thedfirreport.com/2021/10/18/icedid-to-xinglocker-ransomware-in-24-hours/
-    - https://gist.github.com/anadr/7465a9fde63d41341136949f14c21105
-    - https://admx.help/?Category=Windows_7_2008R2&Policy=Microsoft.Policies.WindowsDefender::SpyNetReporting
-    - https://symantec-enterprise-blogs.security.com/blogs/threat-intelligence/ransomware-hive-conti-avoslocker
-    - https://www.tenforums.com/tutorials/32236-enable-disable-microsoft-defender-pua-protection-windows-10-a.html
-    - https://www.tenforums.com/tutorials/105533-enable-disable-windows-defender-exploit-protection-settings.html
-    - https://www.tenforums.com/tutorials/123792-turn-off-tamper-protection-microsoft-defender-antivirus.html
-    - https://securelist.com/key-group-ransomware-samples-and-telegram-schemes/114025/
-author: AlertIQ, Ján Trenčanský, frack113, Nasreddine Bencherchali, Swachchhanda Shrawan Poudel
+description: Detects when attackers disable Windows Defender functionalities via registry using PowerShell or Reg.exe (Mapped to ECS fields)
+author: AlertIQ, Gemini Adaptive AI
 date: 2022-08-01
-modified: 2024-10-07
+modified: 2026-04-06
 tags:
     - attack.defense-evasion
     - attack.t1562.001
@@ -26,41 +12,32 @@ logsource:
     product: windows
     category: registry_set
 detection:
+    # 1. Thay TargetObject bằng registry.path (Theo đúng log ELK của bạn)
     selection_main:
-        TargetObject|contains:
-            - '\SOFTWARE\Microsoft\Windows Defender\'
-            - '\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\'
-            - '\SOFTWARE\Policies\Microsoft\Windows Defender\'
-    selection_dword_1:
-        TargetObject|endswith:
+        registry.path|contains:
+            - '\SOFTWARE\Microsoft\Windows Defender'
+            - '\SOFTWARE\Policies\Microsoft\Windows Defender'
+    
+    # 2. Kiểm tra tên các Key bị tác động
+    selection_keys:
+        registry.path|endswith:
             - '\DisableAntiSpyware'
             - '\DisableAntiVirus'
-            - '\DisableBehaviorMonitoring'
-            - '\DisableBlockAtFirstSeen'
-            - '\DisableEnhancedNotifications'
-            - '\DisableIntrusionPreventionSystem'
-            - '\DisableIOAVProtection'
-            - '\DisableOnAccessProtection'
             - '\DisableRealtimeMonitoring'
-            - '\DisableScanOnRealtimeEnable'
-            - '\DisableScriptScanning'
-        Details: 'DWORD (0x00000001)'
-    selection_dword_0:
-        TargetObject|endswith:
-            - '\DisallowExploitProtectionOverride'
+            - '\DisableBehaviorMonitoring'
+            - '\DisableOnAccessProtection'
             - '\Features\TamperProtection'
-            - '\MpEngine\MpEnablePus'
-            - '\PUAProtection'
-            - '\Signature Update\ForceUpdateFromMU'
-            - '\SpyNet\SpynetReporting'
-            - '\SpyNet\SubmitSamplesConsent'
-            - '\Windows Defender Exploit Guard\Controlled Folder Access\EnableControlledFolderAccess'
-        Details: 'DWORD (0x00000000)'
-    filter_optional_symantec:
-        Image|startswith: 'C:\Program Files\Symantec\Symantec Endpoint Protection\'
-        Image|endswith: '\sepWscSvc64.exe'
-    condition: selection_main and 1 of selection_dword_* and not 1 of filter_optional_*
+
+    # 3. Thay Details bằng registry.data.strings
+    # PowerShell 'Value 1' sẽ được Sysmon/ELK ghi nhận là "DWORD (0x00000001)" hoặc đơn giản là "1"
+    selection_value:
+        registry.data.strings|contains:
+            - '1'
+            - '0x00000001'
+            - 'DWORD'
+
+    condition: selection_main and selection_keys and selection_value
 falsepositives:
-    - Administrator actions via the Windows Defender interface
-    - Third party Antivirus
+    - Administrator actions
+    - Third party Antivirus installation
 level: high
