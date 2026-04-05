@@ -25,8 +25,7 @@ logsource:
 detection:
     selection_other:
         ParentImage|endswith:
-            - '\WMIPRVSE.EXE'
-            - '\WMIPRVSE.exe'        # wmiexec
+            - '\WmiPrvSE.exe'        # wmiexec
             - '\mmc.exe'        # dcomexec MMC
             - '\explorer.exe'        # dcomexec ShellBrowserWindow
             - '\services.exe'        # smbexec
