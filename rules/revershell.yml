@@ -1,0 +1,33 @@
+title: Detect Potential Reverse Shell via Sysmon EventID 3
+id: a1b2c3d4-9999-4abc-8def-1234567890ab
+status: experimental
+description: Phát hiện các tiến trình dòng lệnh (cmd, powershell) khởi tạo kết nối mạng ra ngoài, dấu hiệu điển hình của Reverse Shell.
+author: Tang The Anh
+date: 2026/04/05
+tags:
+    - attack.execution
+    - attack.t1059.001
+    - attack.command_and_control
+    - attack.t1071.001
+logsource:
+    product: windows
+    service: sysmon
+detection:
+    selection:
+        EventID: 3
+        Initiated: 'true'  # Kết nối từ máy nạn nhân đi ra (Outbound)
+        Image|endswith:
+            - '\cmd.exe'
+            - '\powershell.exe'
+            - '\pwsh.exe'
+            - '\wscript.exe'
+            - '\cscript.exe'
+            - '\rundll32.exe'
+            - '\regsvr32.exe'
+    filter_local:
+        # Loại trừ kết nối tới localhost hoặc dải IP nội bộ nếu cần thiết
+        DestinationIp:
+            - '127.0.0.1'
+            - '::1'
+    condition: selection and not filter_local
+level: critical
