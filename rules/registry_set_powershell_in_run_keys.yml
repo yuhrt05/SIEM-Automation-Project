@@ -2,7 +2,7 @@ title: Suspicious PowerShell In Registry Run Keys
 id: 8d85cf08-bf97-4260-ba49-986a2a65129c
 status: test
 description: Phát hiện hành vi chèn lệnh PowerShell vào Registry Run keys để bám trụ (Persistence), đã tối ưu cho ELK/ECS.
-author: frack113, Florian Roth, Gemini Adaptive AI
+author: Huy Trung
 date: 2022-03-17
 modified: 2026-04-06
 tags:
@@ -13,7 +13,6 @@ logsource:
     product: windows
 detection:
     selection:
-        # Thay TargetObject bằng registry.path (theo đúng log ELK của bạn)
         registry.path|contains:
             - '\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
             - '\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'
