@@ -1,0 +1,26 @@
+title: Detect Persistence via Registry Run or RunOnce Keys
+id: c3f6a2e4-1234-4abc-8def-123456789abc
+status: experimental
+description: Phát hiện hành vi tạo hoặc chỉnh sửa các Registry key Run/RunOnce để duy trì persistence trong hệ thống.
+references:
+    - https://attack.mitre.org/techniques/T1547/001/
+author: Tang The Anh
+date: 2026/04/05
+tags:
+    - attack.persistence
+    - attack.t1547.001
+logsource:
+    product: windows x
+    service: sysmon
+detection:
+    selection:
+        EventID: 13
+        TargetObject|contains:
+            - '\Microsoft\Windows\CurrentVersion\Run\'
+            - '\Microsoft\Windows\CurrentVersion\RunOnce\'
+    condition: selection
+falsepositives:
+    - Cài đặt phần mềm mới hợp lệ.
+    - Các bản cập nhật hệ thống hoặc ứng dụng (như Browser Update).
+level: high
+##

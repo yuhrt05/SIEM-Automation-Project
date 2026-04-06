@@ -1,0 +1,43 @@
+title: Disable Windows Defender Functionalities Via Registry Keys
+id: 0eb46774-f1ab-4a74-8238-1155855f2263
+status: test
+description: Detects when attackers disable Windows Defender functionalities via registry using PowerShell or Reg.exe (Mapped to ECS fields)
+author: Huy Trung
+date: 2022-08-01
+modified: 2026-04-06
+tags:
+    - attack.defense-evasion
+    - attack.t1562.001
+logsource:
+    product: windows
+    category: registry_set
+detection:
+    # 1. Thay TargetObject bằng registry.path (Theo đúng log ELK của bạn)
+    selection_main:
+        registry.path|contains:
+            - '\SOFTWARE\Microsoft\Windows Defender'
+            - '\SOFTWARE\Policies\Microsoft\Windows Defender'
+    
+    # 2. Kiểm tra tên các Key bị tác động
+    selection_keys:
+        registry.path|endswith:
+            - '\DisableAntiSpyware'
+            - '\DisableAntiVirus'
+            - '\DisableRealtimeMonitoring'
+            - '\DisableBehaviorMonitoring'
+            - '\DisableOnAccessProtection'
+            - '\Features\TamperProtection'
+
+    # 3. Thay Details bằng registry.data.strings
+    # PowerShell 'Value 1' sẽ được Sysmon/ELK ghi nhận là "DWORD (0x00000001)" hoặc đơn giản là "1"
+    selection_value:
+        registry.data.strings|contains:
+            - '1'
+            - '0x00000001'
+            - 'DWORD'
+
+    condition: selection_main and selection_keys and selection_value
+falsepositives:
+    - Administrator actions
+    - Third party Antivirus installation
+level: high
